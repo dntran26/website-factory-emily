@@ -1,0 +1,2379 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Website Factory — Project Board</title>
+<style>
+  :root {
+    --ink: #0F1923;
+    --navy: #1A2E44;
+    --teal: #0E7C86;
+    --teal-lt: #14B8C8;
+    --cream: #F5F0E8;
+    --sand: #E8E0D0;
+    --white: #FFFFFF;
+    --muted: #8899AA;
+    --accent: #F0A500;
+    --accent-lt: #FFD166;
+    --red: #E84855;
+    --green: #2DC653;
+    --purple: #7B5EA7;
+  }
+
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    background: var(--cream);
+    color: var(--ink);
+    min-height: 100vh;
+  }
+
+  /* ── TOP NAV ─────────────────────────────────────────────── */
+  .topnav {
+    background: var(--ink);
+    padding: 0 2rem;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    height: 60px;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    border-bottom: 3px solid var(--teal);
+  }
+  .topnav-brand { display: flex; align-items: center; gap: 12px; }
+  .brand-dot { width: 10px; height: 10px; background: var(--teal); border-radius: 50%; }
+  .brand-text { color: var(--white); font-size: 15px; font-weight: 700; letter-spacing: 0.5px; }
+  .brand-sub { color: var(--muted); font-size: 11px; margin-top: 1px; }
+  .nav-tabs { display: flex; gap: 0; }
+  .nav-tab {
+    padding: 0 20px;
+    height: 60px;
+    display: flex;
+    align-items: center;
+    color: var(--muted);
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    border-bottom: 3px solid transparent;
+    margin-bottom: -3px;
+    transition: all 0.2s;
+    letter-spacing: 0.3px;
+  }
+  .nav-tab:hover { color: var(--white); }
+  .nav-tab.active { color: var(--teal-lt); border-bottom-color: var(--teal-lt); }
+  .nav-meta { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+  .badge { background: var(--teal); color: var(--white); font-size: 10px; font-weight: 700; padding: 3px 8px; border-radius: 3px; letter-spacing: 0.5px; }
+  .badge.orange { background: var(--accent); color: var(--ink); }
+
+  /* ── VIEWS ───────────────────────────────────────────────── */
+  .view { display: none; padding: 2rem; }
+  .view.active { display: block; }
+
+  /* ── PAGE HEADER ─────────────────────────────────────────── */
+  .page-header {
+    background: var(--navy);
+    border-radius: 10px;
+    padding: 28px 32px;
+    margin-bottom: 24px;
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    border-left: 5px solid var(--teal);
+  }
+  .page-header h1 { color: var(--white); font-size: 22px; font-weight: 800; }
+  .page-header p { color: var(--muted); font-size: 13px; margin-top: 6px; max-width: 560px; line-height: 1.6; }
+  .header-stats { display: flex; gap: 24px; }
+  .h-stat { text-align: center; }
+  .h-stat-val { color: var(--teal-lt); font-size: 26px; font-weight: 800; }
+  .h-stat-label { color: var(--muted); font-size: 10px; font-weight: 600; letter-spacing: 0.5px; text-transform: uppercase; margin-top: 2px; }
+
+  /* ── KANBAN BOARD ────────────────────────────────────────── */
+  .kanban-wrap { display: flex; gap: 16px; overflow-x: auto; padding-bottom: 16px; }
+  .kanban-col {
+    flex: 0 0 300px;
+    background: var(--sand);
+    border-radius: 10px;
+    overflow: hidden;
+  }
+  .col-header {
+    padding: 14px 16px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    font-size: 12px;
+    font-weight: 700;
+    letter-spacing: 0.8px;
+    text-transform: uppercase;
+  }
+  .col-count {
+    background: rgba(255,255,255,0.3);
+    border-radius: 10px;
+    padding: 2px 8px;
+    font-size: 11px;
+  }
+  .col-body { padding: 12px; display: flex; flex-direction: column; gap: 10px; min-height: 140px; transition: background 0.2s; }
+
+  .card {
+    background: var(--white);
+    border-radius: 8px;
+    padding: 14px;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.08);
+    cursor: pointer;
+    transition: transform 0.15s, box-shadow 0.15s;
+    border-left: 4px solid transparent;
+    position: relative;
+  }
+  .card:hover { transform: translateY(-2px); box-shadow: 0 6px 16px rgba(0,0,0,0.12); }
+  .card-tag {
+    font-size: 9px;
+    font-weight: 700;
+    letter-spacing: 0.8px;
+    text-transform: uppercase;
+    padding: 2px 7px;
+    border-radius: 3px;
+    display: inline-block;
+    margin-bottom: 8px;
+  }
+  .card-title { font-size: 13px; font-weight: 700; color: var(--ink); line-height: 1.4; margin-bottom: 6px; }
+  .card-body { font-size: 11px; color: var(--muted); line-height: 1.5; }
+  .card-footer { display: flex; align-items: center; justify-content: space-between; margin-top: 10px; }
+  .card-role {
+    font-size: 9px;
+    font-weight: 700;
+    letter-spacing: 0.5px;
+    padding: 2px 7px;
+    border-radius: 3px;
+    text-transform: uppercase;
+  }
+  .card-effort { font-size: 10px; color: var(--muted); }
+
+  /* Role color coding */
+  .role-designer { background: rgba(14,124,134,0.15); color: var(--teal); }
+  .role-developer { background: rgba(20,184,200,0.15); color: var(--teal-lt); }
+  .role-both { background: rgba(240,165,0,0.15); color: var(--accent); }
+  .role-sales { background: rgba(255,209,102,0.15); color: #b07800; }
+
+  .tag-figma { background: rgba(123,94,167,0.15); color: var(--purple); }
+  .tag-webflow { background: rgba(14,124,134,0.15); color: var(--teal); }
+  .tag-relume { background: rgba(240,165,0,0.15); color: var(--accent); }
+  .tag-system { background: rgba(232,72,85,0.15); color: var(--red); }
+  .tag-content { background: rgba(45,198,83,0.12); color: #1a8f38; }
+
+  /* Column accent colors */
+  .col-backlog .col-header { background: #CBD5E0; color: #4A5568; }
+  .col-todo .col-header { background: var(--navy); color: var(--white); }
+  .col-inprog .col-header { background: var(--teal); color: var(--white); }
+  .col-review .col-header { background: var(--accent); color: var(--ink); }
+  .col-done .col-header { background: var(--green); color: var(--white); }
+
+  .col-todo .card { border-left-color: var(--navy); }
+  .col-inprog .card { border-left-color: var(--teal); }
+  .col-review .card { border-left-color: var(--accent); }
+  .col-done .card { border-left-color: var(--green); opacity: 0.8; }
+
+  /* ── CHECKLIST VIEW ──────────────────────────────────────── */
+  .phase-grid { display: flex; flex-direction: column; gap: 24px; }
+  .phase-block {
+    background: var(--white);
+    border-radius: 10px;
+    overflow: hidden;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+  }
+  .phase-header {
+    padding: 20px 28px;
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    cursor: pointer;
+    user-select: none;
+  }
+  .phase-header:hover { filter: brightness(1.05); }
+  .phase-num {
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 14px;
+    font-weight: 800;
+    flex-shrink: 0;
+  }
+  .phase-title-wrap { flex: 1; }
+  .phase-title { font-size: 16px; font-weight: 800; }
+  .phase-subtitle { font-size: 12px; margin-top: 2px; opacity: 0.75; }
+  .phase-meta { display: flex; align-items: center; gap: 12px; }
+  .phase-duration { font-size: 11px; font-weight: 600; padding: 4px 10px; border-radius: 4px; }
+  .phase-progress-wrap { width: 120px; }
+  .phase-progress-bar { height: 6px; border-radius: 3px; background: rgba(255,255,255,0.25); overflow: hidden; }
+  .phase-progress-fill { height: 100%; border-radius: 3px; background: rgba(255,255,255,0.7); transition: width 0.4s; }
+  .phase-progress-label { font-size: 10px; margin-top: 3px; opacity: 0.75; }
+  .phase-toggle { font-size: 18px; transition: transform 0.3s; }
+  .phase-toggle.open { transform: rotate(90deg); }
+
+  .phase-body { display: none; padding: 0 28px 24px; }
+  .phase-body.open { display: block; }
+
+  .section-label {
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    color: var(--muted);
+    margin: 20px 0 10px;
+    padding-bottom: 6px;
+    border-bottom: 1px solid var(--sand);
+  }
+
+  .task-list { display: flex; flex-direction: column; gap: 6px; }
+  .task-item {
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+    padding: 10px 14px;
+    border-radius: 7px;
+    background: var(--cream);
+    transition: background 0.2s;
+    cursor: pointer;
+  }
+  .task-item:hover { background: var(--sand); }
+  .task-item.checked { opacity: 0.5; }
+  .task-item.checked .task-text { text-decoration: line-through; }
+  .task-check {
+    width: 18px;
+    height: 18px;
+    border-radius: 4px;
+    border: 2px solid var(--muted);
+    flex-shrink: 0;
+    margin-top: 1px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s;
+    font-size: 11px;
+  }
+  .task-item.checked .task-check { border-color: var(--green); background: var(--green); color: white; }
+  .task-content { flex: 1; }
+  .task-text { font-size: 13px; color: var(--ink); line-height: 1.4; }
+  .task-note { font-size: 11px; color: var(--muted); margin-top: 3px; line-height: 1.4; }
+  .task-badges { display: flex; gap: 6px; margin-top: 5px; flex-wrap: wrap; }
+  .task-badge {
+    font-size: 9px;
+    font-weight: 700;
+    letter-spacing: 0.5px;
+    padding: 2px 6px;
+    border-radius: 3px;
+    text-transform: uppercase;
+  }
+  .tb-figma { background: rgba(123,94,167,0.15); color: var(--purple); }
+  .tb-webflow { background: rgba(14,124,134,0.15); color: var(--teal); }
+  .tb-relume { background: rgba(240,165,0,0.15); color: #b07800; }
+  .tb-doc { background: rgba(45,198,83,0.12); color: #1a8f38; }
+  .tb-design { background: rgba(14,124,134,0.15); color: var(--teal); }
+  .tb-dev { background: rgba(20,184,200,0.15); color: #0a7a8a; }
+  .tb-both { background: rgba(240,165,0,0.12); color: #b07800; }
+
+  /* ── DEEP DIVE VIEW ──────────────────────────────────────── */
+  .deepdive-tabs { display: flex; gap: 8px; margin-bottom: 24px; flex-wrap: wrap; }
+  .dd-tab {
+    padding: 8px 18px;
+    border-radius: 6px;
+    font-size: 12px;
+    font-weight: 700;
+    cursor: pointer;
+    border: 2px solid var(--sand);
+    background: var(--white);
+    color: var(--muted);
+    transition: all 0.2s;
+    letter-spacing: 0.3px;
+  }
+  .dd-tab:hover { border-color: var(--teal); color: var(--teal); }
+  .dd-tab.active { background: var(--teal); border-color: var(--teal); color: var(--white); }
+
+  .dd-panel { display: none; }
+  .dd-panel.active { display: block; }
+
+  .deep-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+  .deep-card {
+    background: var(--white);
+    border-radius: 10px;
+    padding: 24px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+    border-top: 4px solid var(--teal);
+  }
+  .deep-card.accent-top { border-top-color: var(--accent); }
+  .deep-card.teal-lt-top { border-top-color: var(--teal-lt); }
+  .deep-card.navy-top { border-top-color: var(--navy); }
+  .deep-card.purple-top { border-top-color: var(--purple); }
+
+  .deep-card h3 { font-size: 15px; font-weight: 800; color: var(--ink); margin-bottom: 6px; }
+  .deep-card p { font-size: 12px; color: var(--muted); line-height: 1.6; margin-bottom: 14px; }
+
+  .spec-row { display: flex; gap: 8px; margin-bottom: 8px; align-items: flex-start; }
+  .spec-key { font-size: 11px; font-weight: 700; color: var(--teal); min-width: 120px; padding-top: 1px; }
+  .spec-val { font-size: 12px; color: var(--ink); line-height: 1.5; }
+
+  .code-block {
+    background: var(--ink);
+    border-radius: 6px;
+    padding: 14px 16px;
+    font-family: 'SF Mono', 'Fira Code', monospace;
+    font-size: 11px;
+    color: var(--teal-lt);
+    overflow-x: auto;
+    line-height: 1.6;
+    margin: 12px 0;
+  }
+  .code-block .cm { color: var(--muted); }
+  .code-block .ck { color: var(--accent-lt); }
+  .code-block .cv { color: #98C379; }
+  .code-block .cp { color: var(--teal-lt); }
+
+  .full-width { grid-column: 1 / -1; }
+
+  .palette-row { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 10px; }
+  .swatch-item { display: flex; align-items: center; gap: 8px; }
+  .swatch { width: 28px; height: 28px; border-radius: 5px; flex-shrink: 0; box-shadow: 0 1px 3px rgba(0,0,0,0.15); }
+  .swatch-name { font-size: 11px; color: var(--ink); font-weight: 600; }
+  .swatch-hex { font-size: 10px; color: var(--muted); }
+
+  .industry-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; margin-top: 10px; }
+  .industry-chip {
+    background: var(--cream);
+    border-radius: 7px;
+    padding: 10px 12px;
+    font-size: 11px;
+    font-weight: 700;
+    color: var(--navy);
+    border: 1px solid var(--sand);
+    text-align: center;
+  }
+  .industry-chip small { display: block; font-size: 9px; color: var(--muted); font-weight: 400; margin-top: 3px; }
+
+  .shape-demo { display: flex; gap: 16px; margin-top: 12px; flex-wrap: wrap; }
+  .shape-item { text-align: center; }
+  .shape-btn {
+    padding: 10px 20px;
+    font-size: 12px;
+    font-weight: 700;
+    background: var(--teal);
+    color: var(--white);
+    border: none;
+    cursor: default;
+    display: block;
+    margin-bottom: 5px;
+  }
+  .shape-label { font-size: 10px; color: var(--muted); }
+  .sharp-btn { border-radius: 0px; }
+  .soft-btn { border-radius: 8px; }
+  .friendly-btn { border-radius: 100px; }
+
+  /* ── CHECKLIST OVERVIEW BAR ──────────────────────────────── */
+  .progress-overview {
+    background: var(--white);
+    border-radius: 10px;
+    padding: 20px 28px;
+    margin-bottom: 24px;
+    display: flex;
+    align-items: center;
+    gap: 24px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+    flex-wrap: wrap;
+  }
+  .po-label { font-size: 13px; font-weight: 700; color: var(--ink); white-space: nowrap; }
+  .po-bar-wrap { flex: 1; min-width: 200px; }
+  .po-bar { height: 10px; background: var(--sand); border-radius: 5px; overflow: hidden; }
+  .po-fill { height: 100%; background: linear-gradient(90deg, var(--teal), var(--teal-lt)); border-radius: 5px; transition: width 0.5s; }
+  .po-pct { font-size: 18px; font-weight: 800; color: var(--teal); white-space: nowrap; }
+  .po-counts { display: flex; gap: 16px; }
+  .po-count { font-size: 11px; color: var(--muted); white-space: nowrap; }
+  .po-count span { font-weight: 700; color: var(--ink); }
+
+  /* ── DRAG AND DROP ───────────────────────────────────────── */
+  .draggable {
+    cursor: grab;
+    user-select: none;
+    transition: transform 0.15s, box-shadow 0.15s;
+  }
+  .draggable:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 16px rgba(0,0,0,0.12);
+  }
+  .draggable:active { cursor: grabbing; }
+
+  .drag-handle {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    font-size: 16px;
+    color: var(--muted);
+    opacity: 0;
+    line-height: 1;
+    letter-spacing: -1px;
+    transition: opacity 0.15s;
+    cursor: grab;
+  }
+  .draggable:hover .drag-handle { opacity: 1; }
+  .card { position: relative; }
+
+  /* Ghost — the floating clone while dragging */
+  .drag-ghost {
+    position: fixed;
+    pointer-events: none;
+    z-index: 9999;
+    opacity: 0;
+    transform: rotate(-1.5deg) scale(0.97);
+    transition: opacity 0.08s, transform 0.08s;
+    box-shadow: 0 16px 40px rgba(0,0,0,0.22);
+    border-radius: 8px;
+    background: var(--white);
+    border-left: 4px solid var(--teal);
+    padding: 14px;
+    cursor: grabbing;
+  }
+  .drag-ghost .drag-handle { display: none; }
+  .ghost-active {
+    opacity: 0.96;
+    transform: rotate(-1.5deg) scale(1.03);
+  }
+  .ghost-return {
+    opacity: 0;
+    transform: rotate(0deg) scale(0.95);
+    transition: opacity 0.15s, transform 0.15s;
+  }
+
+  /* Source card slot while dragging */
+  .being-dragged { display: none !important; }
+
+  /* Placeholder drop gap */
+  .drop-placeholder {
+    border-radius: 8px;
+    border: 2px dashed var(--teal);
+    background: rgba(14, 124, 134, 0.06);
+    margin: 0;
+    transition: height 0.15s;
+    min-height: 60px;
+  }
+
+  /* Active drop column highlight */
+  .drop-zone.drop-active {
+    background: rgba(14, 124, 134, 0.05);
+    border-radius: 0 0 10px 10px;
+  }
+  .col-todo .drop-zone.drop-active    { background: rgba(26,46,68,0.04); }
+  .col-inprog .drop-zone.drop-active  { background: rgba(14,124,134,0.06); }
+  .col-review .drop-zone.drop-active  { background: rgba(240,165,0,0.05); }
+  .col-done .drop-zone.drop-active    { background: rgba(45,198,83,0.06); }
+
+  /* Drop placeholders tinted per column */
+  .col-todo .drop-placeholder    { border-color: var(--navy); background: rgba(26,46,68,0.05); }
+  .col-inprog .drop-placeholder  { border-color: var(--teal); background: rgba(14,124,134,0.06); }
+  .col-review .drop-placeholder  { border-color: var(--accent); background: rgba(240,165,0,0.06); }
+  .col-done .drop-placeholder    { border-color: var(--green); background: rgba(45,198,83,0.06); }
+
+  /* Card landing animation */
+  @keyframes cardDrop {
+    0%   { transform: scale(1.04) rotate(-0.5deg); }
+    60%  { transform: scale(0.98); }
+    100% { transform: scale(1) rotate(0deg); }
+  }
+  .card-dropped { animation: cardDrop 0.35s cubic-bezier(0.34, 1.56, 0.64, 1); }
+
+  /* Done column card style */
+  .col-done .card .card-title { text-decoration: line-through; color: var(--muted); }
+  .col-done .card { opacity: 0.72; }
+
+  /* Archive column */
+  .col-archive .col-header { background: #4A5568; color: #E2E8F0; }
+  .col-archive .card { border-left-color: #718096; opacity: 0.55; }
+  .col-archive .card .card-title { color: var(--muted); font-style: italic; }
+  .col-archive .card .card-body  { color: #aab; }
+  .col-archive .drop-zone.drop-active { background: rgba(113,128,150,0.06); }
+  .col-archive .drop-placeholder { border-color: #718096; background: rgba(113,128,150,0.06); }
+
+  /* Drag hint bar */
+  .drag-hint {
+    background: var(--navy);
+    color: var(--white);
+    font-size: 11px;
+    padding: 7px 14px;
+    border-radius: 6px;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 16px;
+    transition: opacity 0.6s;
+  }
+  .drag-hint.hidden { opacity: 0; pointer-events: none; }
+
+  /* ── RESPONSIVE ──────────────────────────────────────────── */
+
+  /* ── ADD CARD BUTTON ─────────────────────────────────────────── */
+  .add-card-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    width: 100%;
+    padding: 10px;
+    margin-top: 4px;
+    background: none;
+    border: 1.5px dashed rgba(0,0,0,0.15);
+    border-radius: 8px;
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--muted);
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+  .add-card-btn:hover { border-color: var(--teal); color: var(--teal); background: rgba(14,124,134,0.04); }
+
+  /* ── CARD EDIT INDICATOR ─────────────────────────────────────── */
+  .card-edit-btn {
+    position: absolute;
+    top: 8px; right: 28px;
+    font-size: 13px;
+    opacity: 0;
+    cursor: pointer;
+    transition: opacity 0.15s;
+    line-height: 1;
+    padding: 2px;
+    border-radius: 3px;
+    color: var(--muted);
+    background: none;
+    border: none;
+  }
+  .card:hover .card-edit-btn { opacity: 1; }
+  .card-edit-btn:hover { color: var(--teal); }
+
+  /* ── MODAL ───────────────────────────────────────────────────── */
+  .modal-backdrop {
+    position: fixed; inset: 0;
+    background: rgba(0,0,0,0.55);
+    z-index: 500;
+    display: flex; align-items: center; justify-content: center;
+    opacity: 0; pointer-events: none;
+    transition: opacity 0.2s;
+  }
+  .modal-backdrop.open { opacity: 1; pointer-events: all; }
+  .modal {
+    background: var(--white);
+    border-radius: 12px;
+    padding: 28px;
+    width: 480px;
+    max-width: calc(100vw - 32px);
+    box-shadow: 0 24px 80px rgba(0,0,0,0.3);
+    transform: translateY(12px) scale(0.97);
+    transition: transform 0.22s cubic-bezier(0.34,1.56,0.64,1);
+    position: relative;
+  }
+  .modal-backdrop.open .modal { transform: translateY(0) scale(1); }
+  .modal-title { font-size: 16px; font-weight: 800; color: var(--ink); margin-bottom: 20px; }
+  .modal-close {
+    position: absolute; top: 16px; right: 18px;
+    font-size: 20px; color: var(--muted); cursor: pointer;
+    background: none; border: none; line-height: 1;
+  }
+  .modal-close:hover { color: var(--ink); }
+  .field-row { display: flex; flex-direction: column; gap: 5px; margin-bottom: 14px; }
+  .field-row label { font-size: 11px; font-weight: 700; color: var(--muted); text-transform: uppercase; letter-spacing: 0.5px; }
+  .field-row input, .field-row textarea, .field-row select {
+    padding: 9px 12px;
+    border: 1.5px solid var(--sand);
+    border-radius: 7px;
+    font-size: 13px;
+    font-family: inherit;
+    color: var(--ink);
+    background: var(--cream);
+    transition: border-color 0.2s;
+    resize: vertical;
+  }
+  .field-row input:focus, .field-row textarea:focus, .field-row select:focus {
+    outline: none; border-color: var(--teal);
+  }
+  .field-row-2col { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+  .modal-actions { display: flex; gap: 10px; justify-content: flex-end; margin-top: 20px; padding-top: 16px; border-top: 1px solid var(--sand); }
+  .btn-primary {
+    padding: 9px 20px; background: var(--teal); color: var(--white);
+    border: none; border-radius: 7px; font-size: 13px; font-weight: 700;
+    cursor: pointer; transition: background 0.2s;
+  }
+  .btn-primary:hover { background: var(--teal-lt); color: var(--ink); }
+  .btn-danger {
+    padding: 9px 14px; background: none; color: var(--red);
+    border: 1.5px solid rgba(232,72,85,0.3); border-radius: 7px;
+    font-size: 13px; font-weight: 700; cursor: pointer; transition: all 0.2s;
+    margin-right: auto;
+  }
+  .btn-danger:hover { background: rgba(232,72,85,0.08); border-color: var(--red); }
+  .btn-ghost {
+    padding: 9px 16px; background: none; color: var(--muted);
+    border: 1.5px solid var(--sand); border-radius: 7px;
+    font-size: 13px; font-weight: 600; cursor: pointer; transition: all 0.2s;
+  }
+  .btn-ghost:hover { border-color: var(--muted); color: var(--ink); }
+
+  /* ── PALETTE LINK BUTTON ─────────────────────────────────────── */
+  .palette-link-btn {
+    display: inline-flex; align-items: center; gap: 7px;
+    padding: 8px 16px;
+    background: var(--ink);
+    color: var(--teal-lt);
+    border: 1px solid rgba(20,184,200,0.25);
+    border-radius: 7px;
+    font-size: 12px; font-weight: 700;
+    cursor: pointer; text-decoration: none;
+    transition: all 0.2s;
+    margin-bottom: 20px;
+  }
+  .palette-link-btn:hover { background: var(--navy); border-color: var(--teal-lt); color: var(--white); }
+  .palette-swatches-preview { display: flex; gap: 5px; margin-top: 4px; }
+  .ps-dot { width: 14px; height: 14px; border-radius: 50%; flex-shrink: 0; }
+
+  @media (max-width: 900px) {
+    .deep-grid { grid-template-columns: 1fr; }
+    .kanban-wrap { flex-direction: column; }
+    .kanban-col { flex: none; width: 100%; }
+    .header-stats { display: none; }
+    .nav-tabs { gap: 0; }
+    .nav-tab { padding: 0 12px; font-size: 11px; }
+  }
+</style>
+</head>
+<body>
+
+<!-- TOP NAV -->
+<nav class="topnav">
+  <div class="topnav-brand">
+    <div class="brand-dot"></div>
+    <div>
+      <div class="brand-text">Website Factory</div>
+      <div class="brand-sub">Figma · Relume · Webflow</div>
+    </div>
+  </div>
+  <div class="nav-tabs">
+    <div class="nav-tab active" onclick="switchView('checklist')">📋 Checklist</div>
+    <div class="nav-tab" onclick="switchView('kanban')">🗂 Kanban</div>
+    <div class="nav-tab" onclick="switchView('deepdive')">🔬 Deep Dive</div>
+  </div>
+  <div class="nav-meta">
+    <span class="badge">6hr Target</span>
+    <span class="badge orange">Sprint 1</span>
+    <span id="save-indicator" style="display:flex;align-items:center;gap:5px;font-size:11px;font-weight:600;color:#6b7280;margin-left:8px;transition:color 0.3s">
+      <span id="save-dot" style="width:7px;height:7px;border-radius:50%;background:#6b7280;display:inline-block;flex-shrink:0;transition:background 0.4s"></span>
+      <span id="save-label">No saved data</span>
+    </span>
+    <button onclick="clearSavedState()" title="Reset all progress" style="font-size:10px;font-weight:700;color:#9ca3af;background:none;border:1px solid rgba(255,255,255,0.15);border-radius:5px;padding:3px 9px;cursor:pointer;margin-left:4px;transition:all 0.2s" onmouseover="this.style.color='#ef4444';this.style.borderColor='#ef4444'" onmouseout="this.style.color='#9ca3af';this.style.borderColor='rgba(255,255,255,0.15)'">↺ Reset</button>
+    <div style="width:1px;height:18px;background:rgba(255,255,255,0.12);margin:0 2px"></div>
+    <button onclick="exportProgress()" title="Download your progress as a JSON file" style="font-size:10px;font-weight:700;color:#14B8C8;background:none;border:1px solid rgba(20,184,200,0.35);border-radius:5px;padding:3px 9px;cursor:pointer;transition:all 0.2s;display:flex;align-items:center;gap:5px" onmouseover="this.style.background='rgba(20,184,200,0.12)';this.style.borderColor='#14B8C8'" onmouseout="this.style.background='none';this.style.borderColor='rgba(20,184,200,0.35)'">⬇ Export</button>
+    <label title="Load a previously exported JSON file" style="font-size:10px;font-weight:700;color:#14B8C8;background:none;border:1px solid rgba(20,184,200,0.35);border-radius:5px;padding:3px 9px;cursor:pointer;transition:all 0.2s;display:flex;align-items:center;gap:5px" onmouseover="this.style.background='rgba(20,184,200,0.12)';this.style.borderColor='#14B8C8'" onmouseout="this.style.background='none';this.style.borderColor='rgba(20,184,200,0.35)'">⬆ Import<input type="file" accept=".json" onchange="importProgress(event)" style="display:none"></label>
+  </div>
+</nav>
+
+<!-- ════════════════════════════════════════════════════════════ -->
+<!-- VIEW 1 — MASTER CHECKLIST                                   -->
+<!-- ════════════════════════════════════════════════════════════ -->
+<div id="view-checklist" class="view active">
+
+  <div class="page-header">
+    <div>
+      <h1>Master Build Checklist</h1>
+      <p>Every task required to build the Website Factory system from scratch. Work through phases in order — each phase unlocks the next. Click any task to mark it complete.</p>
+    </div>
+    <div class="header-stats">
+      <div class="h-stat"><div class="h-stat-val">6</div><div class="h-stat-label">Phases</div></div>
+      <div class="h-stat"><div class="h-stat-val" id="total-tasks-display">64</div><div class="h-stat-label">Total Tasks</div></div>
+      <div class="h-stat"><div class="h-stat-val">6wk</div><div class="h-stat-label">Build Sprint</div></div>
+    </div>
+  </div>
+
+  <div class="progress-overview">
+    <div class="po-label">Overall Progress</div>
+    <div class="po-bar-wrap">
+      <div class="po-bar"><div class="po-fill" id="overall-fill" style="width:0%"></div></div>
+    </div>
+    <div class="po-pct" id="overall-pct">0%</div>
+    <div class="po-counts">
+      <div class="po-count"><span id="done-count">0</span> Done</div>
+      <div class="po-count"><span id="remaining-count">0</span> Remaining</div>
+    </div>
+  </div>
+
+  <div class="phase-grid" id="phases"></div>
+</div>
+
+<!-- ════════════════════════════════════════════════════════════ -->
+<!-- VIEW 2 — KANBAN                                             -->
+<!-- ════════════════════════════════════════════════════════════ -->
+<div id="view-kanban" class="view">
+  <div class="page-header">
+    <div>
+      <h1>Sprint Kanban Board</h1>
+      <p>Drag cards between columns to update their status. Cards are colour-coded by role: teal = Designer, cyan = Developer, amber = Both.</p>
+    </div>
+  </div>
+  <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:4px;flex-wrap:wrap;gap:10px">
+    <div id="drag-hint" class="drag-hint" style="margin-bottom:0"><span>✦</span> Grab any card and drag it to a new column<span style="margin-left:12px;opacity:0.5;cursor:pointer" onclick="dismissHint()">✕</span></div>
+    <div style="display:flex;gap:10px;align-items:center">
+      <a class="palette-link-btn" onclick="openPaletteLibrary()" title="Open Palette Library in new tab">
+        <span style="display:flex;gap:3px;align-items:center">
+          <span style="width:10px;height:10px;border-radius:50%;background:#0E7C86;display:inline-block"></span>
+          <span style="width:10px;height:10px;border-radius:50%;background:#F0A500;display:inline-block"></span>
+          <span style="width:10px;height:10px;border-radius:50%;background:#7B5EA7;display:inline-block"></span>
+        </span>
+        🎨 Palette Library
+      </a>
+      <button class="btn-primary" onclick="openCardModal()" style="font-size:12px;padding:8px 16px">+ New Card</button>
+    </div>
+  </div>
+  <div class="kanban-wrap">
+    <!-- Cols injected by JS -->
+  </div>
+</div>
+
+<!-- ════════════════════════════════════════════════════════════ -->
+<!-- VIEW 3 — DEEP DIVE                                          -->
+<!-- ════════════════════════════════════════════════════════════ -->
+<div id="view-deepdive" class="view">
+  <div class="page-header">
+    <div>
+      <h1>Technical Deep Dive</h1>
+      <p>Detailed specifications for each component of the system: CSS token architecture, Figma library structure, Webflow template config, industry skins, and the 6-hour delivery workflow.</p>
+    </div>
+  </div>
+
+  <div class="deepdive-tabs">
+    <div class="dd-tab active" onclick="switchDD('colours')">🎨 Colour System</div>
+    <div class="dd-tab" onclick="switchDD('figma')">⬡ Figma Library</div>
+    <div class="dd-tab" onclick="switchDD('webflow')">⚡ Webflow Template</div>
+    <div class="dd-tab" onclick="switchDD('industries')">🏢 Industry Skins</div>
+    <div class="dd-tab" onclick="switchDD('shapes')">◻ Shape Presets</div>
+    <div class="dd-tab" onclick="switchDD('workflow')">⏱ 6hr Workflow</div>
+    <div class="dd-tab" onclick="switchDD('sales')">💼 Sales Config</div>
+  </div>
+
+  <!-- COLOURS -->
+  <div id="dd-colours" class="dd-panel active">
+    <div class="deep-grid">
+      <div class="deep-card full-width">
+        <h3>How the Colour Token System Works</h3>
+        <p>Every site uses the same five semantic token names. The token names never change — only their values do. Switching themes is a single class change on the <code>&lt;html&gt;</code> element. No component-level changes needed.</p>
+        <div class="code-block"><span class="cm">/* Each theme is a self-contained CSS block */</span>
+<span class="cp">.theme-corporate-navy</span> {
+  <span class="ck">--color-primary:</span>   <span class="cv">#1A2E44</span>;
+  <span class="ck">--color-secondary:</span> <span class="cv">#0E7C86</span>;
+  <span class="ck">--color-accent:</span>    <span class="cv">#F0A500</span>;
+  <span class="ck">--color-bg:</span>        <span class="cv">#F5F0E8</span>;
+  <span class="ck">--color-surface:</span>   <span class="cv">#FFFFFF</span>;
+  <span class="ck">--color-text:</span>      <span class="cv">#0F1923</span>;
+  <span class="ck">--color-muted:</span>     <span class="cv">#8899AA</span>;
+}
+
+<span class="cm">/* Swapping themes — one line of JS in Webflow */</span>
+<span class="cp">document.documentElement.className</span> = <span class="cv">'theme-fresh-sage'</span>;
+        </div>
+      </div>
+
+      <div class="deep-card">
+        <h3>Palette Library — 20 Named Themes</h3>
+        <p>Each palette is named, visualised, and documented with use-case guidance. Sales picks from swatches, not hex codes.</p>
+        <div class="palette-row">
+          <div class="swatch-item"><div class="swatch" style="background:#1A2E44"></div><div><div class="swatch-name">Corporate Navy</div><div class="swatch-hex">Professional · B2B</div></div></div>
+          <div class="swatch-item"><div class="swatch" style="background:#2C5F2D"></div><div><div class="swatch-name">Forest Sage</div><div class="swatch-hex">Natural · Wellness</div></div></div>
+          <div class="swatch-item"><div class="swatch" style="background:#B85042"></div><div><div class="swatch-name">Warm Terracotta</div><div class="swatch-hex">Creative · Trades</div></div></div>
+          <div class="swatch-item"><div class="swatch" style="background:#028090"></div><div><div class="swatch-name">Teal Trust</div><div class="swatch-hex">Health · Finance</div></div></div>
+          <div class="swatch-item"><div class="swatch" style="background:#6D2E46"></div><div><div class="swatch-name">Berry Luxury</div><div class="swatch-hex">Hospitality · Retail</div></div></div>
+          <div class="swatch-item"><div class="swatch" style="background:#36454F"></div><div><div class="swatch-name">Charcoal Minimal</div><div class="swatch-hex">Architecture · Law</div></div></div>
+          <div class="swatch-item"><div class="swatch" style="background:#065A82"></div><div><div class="swatch-name">Ocean Deep</div><div class="swatch-hex">Tech · Maritime</div></div></div>
+          <div class="swatch-item"><div class="swatch" style="background:#990011"></div><div><div class="swatch-name">Cherry Bold</div><div class="swatch-hex">Food · Events</div></div></div>
+        </div>
+      </div>
+
+      <div class="deep-card accent-top">
+        <h3>Token Naming Convention</h3>
+        <p>Tokens are always semantic — never reference a colour by its value. This is what makes theme-swapping instant.</p>
+        <div class="spec-row"><span class="spec-key">--color-primary</span><span class="spec-val">Main brand colour. Used for navbars, section headers, key CTAs.</span></div>
+        <div class="spec-row"><span class="spec-key">--color-secondary</span><span class="spec-val">Supporting brand colour. Cards, icons, borders, highlights.</span></div>
+        <div class="spec-row"><span class="spec-key">--color-accent</span><span class="spec-val">High-contrast pop. Buttons, badges, hover states, links.</span></div>
+        <div class="spec-row"><span class="spec-key">--color-bg</span><span class="spec-val">Page background. Usually a light neutral — cream, grey, white.</span></div>
+        <div class="spec-row"><span class="spec-key">--color-surface</span><span class="spec-val">Cards and elevated surfaces. Usually white or slightly lighter than bg.</span></div>
+        <div class="spec-row"><span class="spec-key">--color-text</span><span class="spec-val">Primary text. Must pass WCAG AA on --color-bg.</span></div>
+        <div class="spec-row"><span class="spec-key">--color-muted</span><span class="spec-val">Secondary text, captions, metadata. At least 4.5:1 contrast ratio.</span></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- FIGMA LIBRARY -->
+  <div id="dd-figma" class="dd-panel">
+    <div class="deep-grid">
+      <div class="deep-card full-width">
+        <h3>Figma Master Library Architecture</h3>
+        <p>The Figma library is not a mood board — it is a 1:1 mirror of what is built in Webflow. Every component, variant, and state that exists in code also exists in Figma. The library is structured in three levels: Foundations → Components → Page Templates.</p>
+      </div>
+      <div class="deep-card">
+        <h3>Level 1 — Foundations</h3>
+        <p>The design tokens and base atoms. These are styles, not components.</p>
+        <div class="spec-row"><span class="spec-key">Colour Styles</span><span class="spec-val">All 20 palettes as Figma colour styles using the semantic token names</span></div>
+        <div class="spec-row"><span class="spec-key">Text Styles</span><span class="spec-val">H1–H6, Body L/M/S, Caption, Label — matched to Webflow type scale</span></div>
+        <div class="spec-row"><span class="spec-key">Spacing Scale</span><span class="spec-val">4px base unit: 4, 8, 12, 16, 24, 32, 48, 64, 96, 128px</span></div>
+        <div class="spec-row"><span class="spec-key">Breakpoints</span><span class="spec-val">320, 768, 992, 1280, 1440px — matching Webflow breakpoints exactly</span></div>
+        <div class="spec-row"><span class="spec-key">Grid</span><span class="spec-val">12-col, 24px gutter, 80px max container padding</span></div>
+      </div>
+      <div class="deep-card teal-lt-top">
+        <h3>Level 2 — Components (from Relume)</h3>
+        <p>All components sourced from Relume, imported into the master library, then extended with theme/shape variants.</p>
+        <div class="spec-row"><span class="spec-key">Navigation</span><span class="spec-val">Navbar × 4 variants, Mobile nav, Mega menu</span></div>
+        <div class="spec-row"><span class="spec-key">Hero Sections</span><span class="spec-val">8 hero layouts: text-only, image-right, full-bleed, video</span></div>
+        <div class="spec-row"><span class="spec-key">Feature Sections</span><span class="spec-val">Grid, alternating, icon-list, comparison table</span></div>
+        <div class="spec-row"><span class="spec-key">Social Proof</span><span class="spec-val">Testimonials × 3, Logo bars, Stats, Case study cards</span></div>
+        <div class="spec-row"><span class="spec-key">CTAs</span><span class="spec-val">Banner, Card CTA, Inline, Full-bleed</span></div>
+        <div class="spec-row"><span class="spec-key">Contact/Forms</span><span class="spec-val">Contact block, Map + form, Simple form</span></div>
+        <div class="spec-row"><span class="spec-key">Footer</span><span class="spec-val">Multi-col, Simple, Minimal — 3 variants</span></div>
+      </div>
+      <div class="deep-card purple-top">
+        <h3>Level 3 — Page Templates</h3>
+        <p>Pre-assembled page layouts combining sections. These are what designers see when they open a project — not a blank canvas.</p>
+        <div class="spec-row"><span class="spec-key">Home</span><span class="spec-val">Hero → Features → Social proof → CTA → Footer</span></div>
+        <div class="spec-row"><span class="spec-key">About</span><span class="spec-val">Team → Story → Values → Stats → CTA</span></div>
+        <div class="spec-row"><span class="spec-key">Services</span><span class="spec-val">Service list → Process → Pricing → FAQ → CTA</span></div>
+        <div class="spec-row"><span class="spec-key">Contact</span><span class="spec-val">Contact form → Map → Locations → Social links</span></div>
+        <div class="spec-row"><span class="spec-key">Gallery/Portfolio</span><span class="spec-val">Masonry grid → Filter → Lightbox</span></div>
+      </div>
+      <div class="deep-card accent-top">
+        <h3>Component Variant Matrix</h3>
+        <p>Each component has all three axes of variation pre-built as Figma variants. Switching is a dropdown, not a redesign.</p>
+        <div class="code-block"><span class="cm">// Every Figma component has these properties:</span>
+<span class="ck">Theme:</span>     <span class="cv">Corporate Navy | Forest Sage | Teal Trust | ...</span>
+<span class="ck">Shape:</span>     <span class="cv">Sharp | Soft | Friendly</span>
+<span class="ck">Industry:</span>  <span class="cv">Default | Law | Trades | Health | Retail | ...</span>
+<span class="ck">State:</span>     <span class="cv">Default | Hover | Focus | Disabled | Loading</span>
+<span class="ck">Dark Mode:</span> <span class="cv">Off | On</span></div>
+      </div>
+      <div class="deep-card navy-top">
+        <h3>Library Governance Rules</h3>
+        <p>These rules ensure Figma and Webflow stay in sync and the system doesn't drift over time.</p>
+        <div class="spec-row"><span class="spec-key">Sync Owner</span><span class="spec-val">One person owns Figma↔Webflow sync as a defined part-time responsibility</span></div>
+        <div class="spec-row"><span class="spec-key">New Component</span><span class="spec-val">Added to Figma AND Webflow in the same PR/update — never one without the other</span></div>
+        <div class="spec-row"><span class="spec-key">Naming</span><span class="spec-val">Component names in Figma MUST match the Webflow class names exactly</span></div>
+        <div class="spec-row"><span class="spec-key">No Detach Rule</span><span class="spec-val">Designers never detach components. If a need arises, it goes to the backlog</span></div>
+        <div class="spec-row"><span class="spec-key">Version Tags</span><span class="spec-val">Library is tagged at the start of each sprint: v1.0, v1.1, etc.</span></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- WEBFLOW TEMPLATE -->
+  <div id="dd-webflow" class="dd-panel">
+    <div class="deep-grid">
+      <div class="deep-card full-width">
+        <h3>Webflow Base Template Architecture</h3>
+        <p>The Webflow template is a single project that contains every component and page template. All variation is controlled through CSS custom properties and custom attributes — never through duplicate classes or separate builds. Cloning the template starts every new project.</p>
+      </div>
+      <div class="deep-card">
+        <h3>CSS Variable Architecture</h3>
+        <p>Set globally in the <code>:root</code> and overridden per-theme. Zero custom CSS for standard builds.</p>
+        <div class="code-block"><span class="cm">/* webflow-config.css — the only file that changes per project */</span>
+:root {
+  <span class="cm">/* Injected by theme selection */</span>
+  <span class="ck">--color-primary:</span>   <span class="cv">#1A2E44</span>;
+  <span class="ck">--color-secondary:</span> <span class="cv">#0E7C86</span>;
+  <span class="ck">--color-accent:</span>    <span class="cv">#F0A500</span>;
+  <span class="ck">--color-bg:</span>        <span class="cv">#F5F0E8</span>;
+  <span class="ck">--color-surface:</span>   <span class="cv">#FFFFFF</span>;
+
+  <span class="cm">/* Injected by shape preset */</span>
+  <span class="ck">--radius-btn:</span>      <span class="cv">0px</span>;     <span class="cm">/* Sharp */</span>
+  <span class="ck">--radius-card:</span>     <span class="cv">0px</span>;
+  <span class="ck">--radius-input:</span>    <span class="cv">2px</span>;
+  <span class="ck">--image-crop:</span>      <span class="cv">0%</span>;      <span class="cm">/* 0=square, 8px=rounded, 50%=circle */</span>
+}</div>
+      </div>
+      <div class="deep-card teal-lt-top">
+        <h3>Webflow Custom Attributes</h3>
+        <p>Industry skins use Webflow custom attributes to show/hide sections and apply copy without touching the designer. The skin JSON is loaded at project setup.</p>
+        <div class="code-block"><span class="cm">/* On each section in Webflow */</span>
+data-industry="<span class="cv">all</span>"           <span class="cm">← always visible</span>
+data-industry="<span class="cv">trades</span>"       <span class="cm">← only for trades skin</span>
+data-industry="<span class="cv">law,health</span>"   <span class="cm">← visible for law OR health</span>
+
+<span class="cm">/* Skin JSON — controls visibility + copy overrides */</span>
+{
+  <span class="ck">"skin":</span> <span class="cv">"trades"</span>,
+  <span class="ck">"sections":</span> [<span class="cv">"emergency-cta"</span>, <span class="cv">"service-area"</span>, ...],
+  <span class="ck">"copy"</span>: {
+    <span class="ck">"hero-headline":</span> <span class="cv">"Fast, Reliable [Service] in [City]"</span>,
+    <span class="ck">"cta-primary":</span>  <span class="cv">"Call Now — 24/7 Emergency Service"</span>
+  }
+}</div>
+      </div>
+      <div class="deep-card accent-top">
+        <h3>Template Folder Structure</h3>
+        <p>The Webflow project is organised so any developer can pick up any project. File names match Figma component names exactly.</p>
+        <div class="code-block">webflow-base-template/
+├── <span class="ck">_config/</span>
+│   ├── <span class="cv">theme.css</span>         <span class="cm">← edit this for colour</span>
+│   ├── <span class="cv">shape.css</span>         <span class="cm">← edit this for radius</span>
+│   └── <span class="cv">skin.json</span>         <span class="cm">← edit this for industry</span>
+├── <span class="ck">components/</span>
+│   ├── <span class="cv">navbar/</span>
+│   ├── <span class="cv">hero/</span>
+│   ├── <span class="cv">features/</span>
+│   └── <span class="cv">...</span>
+├── <span class="ck">pages/</span>
+│   ├── <span class="cv">home.html</span>
+│   ├── <span class="cv">about.html</span>
+│   └── <span class="cv">...</span>
+└── <span class="ck">content/</span>
+    └── <span class="cv">[client-name].json</span>  <span class="cm">← all copy here</span></div>
+      </div>
+      <div class="deep-card navy-top">
+        <h3>Developer Config Checklist</h3>
+        <p>A new build takes &lt; 30 minutes of setup before content integration begins. This is the full setup sequence.</p>
+        <div class="spec-row"><span class="spec-key">Step 1</span><span class="spec-val">Clone Webflow base template → rename to client</span></div>
+        <div class="spec-row"><span class="spec-key">Step 2</span><span class="spec-val">Copy chosen theme CSS file into _config/theme.css</span></div>
+        <div class="spec-row"><span class="spec-key">Step 3</span><span class="spec-val">Set shape preset in _config/shape.css (Sharp/Soft/Friendly)</span></div>
+        <div class="spec-row"><span class="spec-key">Step 4</span><span class="spec-val">Copy industry skin JSON into _config/skin.json</span></div>
+        <div class="spec-row"><span class="spec-key">Step 5</span><span class="spec-val">Run skin.js to apply visibility and copy overrides</span></div>
+        <div class="spec-row"><span class="spec-key">Step 6</span><span class="spec-val">Populate content JSON with client copy + images</span></div>
+        <div class="spec-row"><span class="spec-key">Step 7</span><span class="spec-val">Publish to staging subdomain → share with designer</span></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- INDUSTRY SKINS -->
+  <div id="dd-industries" class="dd-panel">
+    <div class="deep-grid">
+      <div class="deep-card full-width">
+        <h3>Industry Skin System</h3>
+        <p>Each industry skin is a JSON configuration file that changes three things: section order and visibility, placeholder copy (headlines, CTAs, FAQs), and imagery/icon direction. Skins do NOT change layout or components — only which sections appear and in what order.</p>
+      </div>
+      <div class="deep-card full-width">
+        <h3>Phase 1 Industry Skins (8 to Build)</h3>
+        <div class="industry-grid">
+          <div class="industry-chip">Trades<small>Plumbing · HVAC · Electric</small></div>
+          <div class="industry-chip">Law Firm<small>Solicitors · Notaries</small></div>
+          <div class="industry-chip">Health & Wellness<small>Clinics · Physio · Yoga</small></div>
+          <div class="industry-chip">Restaurant & Cafe<small>Food · Hospitality</small></div>
+          <div class="industry-chip">Retail & E-comm<small>Boutique · Shop</small></div>
+          <div class="industry-chip">Real Estate<small>Agents · Developers</small></div>
+          <div class="industry-chip">Professional Services<small>Accountants · Consultants</small></div>
+          <div class="industry-chip">Creative Agency<small>Marketing · Design</small></div>
+        </div>
+      </div>
+      <div class="deep-card">
+        <h3>Trades Skin — Section Order</h3>
+        <p>Leads with urgency and trust signals. Emergency CTA is the #1 element above the fold.</p>
+        <div class="spec-row"><span class="spec-key">1. Emergency CTA</span><span class="spec-val">Phone number, "24/7 Available", service area</span></div>
+        <div class="spec-row"><span class="spec-key">2. Hero</span><span class="spec-val">"Fast, Reliable [Service] in [City]"</span></div>
+        <div class="spec-row"><span class="spec-key">3. Services Grid</span><span class="spec-val">6 service tiles with icons</span></div>
+        <div class="spec-row"><span class="spec-key">4. Trust Bar</span><span class="spec-val">Licensed · Insured · [X] years · Rated 5★</span></div>
+        <div class="spec-row"><span class="spec-key">5. Testimonials</span><span class="spec-val">3 real reviews with star ratings</span></div>
+        <div class="spec-row"><span class="spec-key">6. Service Area Map</span><span class="spec-val">Embedded map with radius overlay</span></div>
+        <div class="spec-row"><span class="spec-key">7. Contact Form</span><span class="spec-val">Book a job form + phone prominence</span></div>
+      </div>
+      <div class="deep-card teal-lt-top">
+        <h3>Law Firm Skin — Section Order</h3>
+        <p>Leads with credibility. Awards, years in business, and team credentials come before services.</p>
+        <div class="spec-row"><span class="spec-key">1. Hero</span><span class="spec-val">"Trusted Legal Advice in [City]" + CTA</span></div>
+        <div class="spec-row"><span class="spec-key">2. Credibility Bar</span><span class="spec-val">Years in business · Cases won · Awards</span></div>
+        <div class="spec-row"><span class="spec-key">3. Practice Areas</span><span class="spec-val">6 areas with icons</span></div>
+        <div class="spec-row"><span class="spec-key">4. Team</span><span class="spec-val">Solicitor headshots + credentials</span></div>
+        <div class="spec-row"><span class="spec-key">5. Testimonials</span><span class="spec-val">Client quotes with initials</span></div>
+        <div class="spec-row"><span class="spec-key">6. Process</span><span class="spec-val">3-step "How we work" explainer</span></div>
+        <div class="spec-row"><span class="spec-key">7. Contact</span><span class="spec-val">Free consultation booking form</span></div>
+      </div>
+      <div class="deep-card accent-top">
+        <h3>Health &amp; Wellness Skin — Section Order</h3>
+        <p>Leads with calm and credibility. Warm, trustworthy tones. Emphasises qualifications and outcomes above services.</p>
+        <div class="spec-row"><span class="spec-key">1. Hero</span><span class="spec-val">Calm headline + soft lifestyle image, book appointment CTA</span></div>
+        <div class="spec-row"><span class="spec-key">2. Trust Bar</span><span class="spec-val">Qualifications · Registered · Years practice · Insurance</span></div>
+        <div class="spec-row"><span class="spec-key">3. Services Grid</span><span class="spec-val">Treatment cards with icons and short outcome descriptions</span></div>
+        <div class="spec-row"><span class="spec-key">4. About / Team</span><span class="spec-val">Practitioner headshots + credentials + short bios</span></div>
+        <div class="spec-row"><span class="spec-key">5. Testimonials</span><span class="spec-val">Patient outcomes (anonymised where needed)</span></div>
+        <div class="spec-row"><span class="spec-key">6. FAQ</span><span class="spec-val">Common questions: rebates, referrals, what to expect</span></div>
+        <div class="spec-row"><span class="spec-key">7. Booking CTA</span><span class="spec-val">Online booking form or phone + location map</span></div>
+      </div>
+      <div class="deep-card navy-top">
+        <h3>Restaurant &amp; Cafe Skin — Section Order</h3>
+        <p>Leads with atmosphere and appetite. Food photography is the hero. Reservations and menu are the primary CTAs.</p>
+        <div class="spec-row"><span class="spec-key">1. Hero</span><span class="spec-val">Full-bleed food/atmosphere photo + Reserve a Table CTA</span></div>
+        <div class="spec-row"><span class="spec-key">2. Story / Vibe</span><span class="spec-val">Short about section: cuisine style, chef, ethos</span></div>
+        <div class="spec-row"><span class="spec-key">3. Menu Highlight</span><span class="spec-val">Featured dishes with photos — links to full menu PDF</span></div>
+        <div class="spec-row"><span class="spec-key">4. Gallery</span><span class="spec-val">Masonry grid of food and venue photography</span></div>
+        <div class="spec-row"><span class="spec-key">5. Testimonials</span><span class="spec-val">Google/TripAdvisor reviews with star ratings</span></div>
+        <div class="spec-row"><span class="spec-key">6. Hours &amp; Location</span><span class="spec-val">Opening hours, embedded map, parking notes</span></div>
+        <div class="spec-row"><span class="spec-key">7. Reservation Form</span><span class="spec-val">Date/time/covers picker + special requests field</span></div>
+      </div>
+      <div class="deep-card purple-top">
+        <h3>Retail &amp; E-comm Skin — Section Order</h3>
+        <p>Leads with product and brand story. Shopping experience and trust signals drive conversion.</p>
+        <div class="spec-row"><span class="spec-key">1. Hero</span><span class="spec-val">Campaign banner + Shop Now CTA, seasonal offer strip</span></div>
+        <div class="spec-row"><span class="spec-key">2. Category Grid</span><span class="spec-val">3–4 featured product categories with imagery</span></div>
+        <div class="spec-row"><span class="spec-key">3. Featured Products</span><span class="spec-val">4–8 hero products with price and add-to-cart</span></div>
+        <div class="spec-row"><span class="spec-key">4. Brand Story</span><span class="spec-val">Short about section — sourcing, values, makers</span></div>
+        <div class="spec-row"><span class="spec-key">5. Social Proof</span><span class="spec-val">UGC-style reviews + Instagram feed embed</span></div>
+        <div class="spec-row"><span class="spec-key">6. Trust Bar</span><span class="spec-val">Free shipping · Easy returns · Secure checkout · Local</span></div>
+        <div class="spec-row"><span class="spec-key">7. Newsletter CTA</span><span class="spec-val">Email sign-up with incentive (10% off first order)</span></div>
+      </div>
+      <div class="deep-card teal-lt-top">
+        <h3>Real Estate Skin — Section Order</h3>
+        <p>Leads with listings and local expertise. Property search and agent credibility are the conversion drivers.</p>
+        <div class="spec-row"><span class="spec-key">1. Hero</span><span class="spec-val">Property search bar + suburb or listing highlight image</span></div>
+        <div class="spec-row"><span class="spec-key">2. Featured Listings</span><span class="spec-val">3–6 current listings with photos, beds, baths, price</span></div>
+        <div class="spec-row"><span class="spec-key">3. Credibility Bar</span><span class="spec-val">Properties sold · Years active · Total sales volume · Awards</span></div>
+        <div class="spec-row"><span class="spec-key">4. Agent / Team</span><span class="spec-val">Agent headshots, licences, suburb specialisations</span></div>
+        <div class="spec-row"><span class="spec-key">5. Suburb Guide</span><span class="spec-val">Local area insights — schools, transport, median prices</span></div>
+        <div class="spec-row"><span class="spec-key">6. Testimonials</span><span class="spec-val">Vendor and buyer reviews with sale price reference</span></div>
+        <div class="spec-row"><span class="spec-key">7. Appraisal CTA</span><span class="spec-val">Free property appraisal form + phone callback option</span></div>
+      </div>
+      <div class="deep-card">
+        <h3>Professional Services Skin — Section Order</h3>
+        <p>Leads with expertise and outcomes. Proof of results and process clarity convert hesitant B2B buyers.</p>
+        <div class="spec-row"><span class="spec-key">1. Hero</span><span class="spec-val">Outcome-led headline ("Save time. Reduce risk.") + CTA</span></div>
+        <div class="spec-row"><span class="spec-key">2. Services</span><span class="spec-val">Clean service list with short outcome descriptions</span></div>
+        <div class="spec-row"><span class="spec-key">3. Process</span><span class="spec-val">3–4 step "how we work" explainer — sets expectations</span></div>
+        <div class="spec-row"><span class="spec-key">4. Credentials</span><span class="spec-val">Certifications, memberships, years in business, client logos</span></div>
+        <div class="spec-row"><span class="spec-key">5. Team</span><span class="spec-val">Headshots + qualifications + LinkedIn links</span></div>
+        <div class="spec-row"><span class="spec-key">6. Case Studies / FAQs</span><span class="spec-val">Brief client outcomes or common Q&amp;A section</span></div>
+        <div class="spec-row"><span class="spec-key">7. Consultation CTA</span><span class="spec-val">Free initial consult form — low-barrier first step</span></div>
+      </div>
+      <div class="deep-card accent-top">
+        <h3>Creative Agency Skin — Section Order</h3>
+        <p>Leads with work. Portfolio is the hero element. Personality and culture drive the right-fit client enquiries.</p>
+        <div class="spec-row"><span class="spec-key">1. Hero</span><span class="spec-val">Bold statement + reel or case study thumbnail grid</span></div>
+        <div class="spec-row"><span class="spec-key">2. Selected Work</span><span class="spec-val">4–6 portfolio pieces with client, discipline, outcome</span></div>
+        <div class="spec-row"><span class="spec-key">3. Services / Disciplines</span><span class="spec-val">What you do: branding, web, campaigns, motion, etc.</span></div>
+        <div class="spec-row"><span class="spec-key">4. About / Culture</span><span class="spec-val">Team, values, working style — helps clients self-qualify</span></div>
+        <div class="spec-row"><span class="spec-key">5. Client Logos</span><span class="spec-val">Logo bar of recognisable clients (social proof)</span></div>
+        <div class="spec-row"><span class="spec-key">6. Process</span><span class="spec-val">Discovery → Strategy → Creation → Launch → Measure</span></div>
+        <div class="spec-row"><span class="spec-key">7. Contact / Brief CTA</span><span class="spec-val">Start a project form — budget range, timeline, scope</span></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- SHAPE PRESETS -->
+  <div id="dd-shapes" class="dd-panel">
+    <div class="deep-grid">
+      <div class="deep-card full-width">
+        <h3>Shape Preset System</h3>
+        <p>Three presets control the visual personality of the entire site through four CSS variables. Changing the preset in the config file instantly updates every button, card, input, image crop, and container across all pages. No individual component adjustments needed.</p>
+        <div class="shape-demo">
+          <div class="shape-item">
+            <button class="shape-btn sharp-btn">Get Started</button>
+            <div class="shape-label">Sharp (0px) — Corporate · Law · Finance</div>
+          </div>
+          <div class="shape-item">
+            <button class="shape-btn soft-btn">Get Started</button>
+            <div class="shape-label">Soft (8px) — Most industries · Default</div>
+          </div>
+          <div class="shape-item">
+            <button class="shape-btn friendly-btn">Get Started</button>
+            <div class="shape-label">Friendly (100px) — Health · Wellness · Kids</div>
+          </div>
+        </div>
+      </div>
+      <div class="deep-card">
+        <h3>Sharp Preset</h3>
+        <p>Zero-radius on all elements. Professional, authoritative, editorial. Best for law, finance, architecture, corporate B2B.</p>
+        <div class="code-block"><span class="ck">--radius-btn:</span>   <span class="cv">0px</span>;
+<span class="ck">--radius-card:</span>  <span class="cv">0px</span>;
+<span class="ck">--radius-input:</span> <span class="cv">2px</span>;
+<span class="ck">--image-crop:</span>   <span class="cv">0%</span>;   <span class="cm">/* square images */</span></div>
+      </div>
+      <div class="deep-card teal-lt-top">
+        <h3>Soft Preset</h3>
+        <p>8px radius — friendly but grounded. The safe default for most industries. Works for trades, services, retail, hospitality.</p>
+        <div class="code-block"><span class="ck">--radius-btn:</span>   <span class="cv">8px</span>;
+<span class="ck">--radius-card:</span>  <span class="cv">10px</span>;
+<span class="ck">--radius-input:</span> <span class="cv">6px</span>;
+<span class="ck">--image-crop:</span>   <span class="cv">8px</span>; <span class="cm">/* slightly rounded */</span></div>
+      </div>
+      <div class="deep-card accent-top">
+        <h3>Friendly Preset</h3>
+        <p>Pill buttons, heavily rounded cards. Approachable, warm, consumer-facing. Best for health, wellness, kids, beauty.</p>
+        <div class="code-block"><span class="ck">--radius-btn:</span>   <span class="cv">100px</span>; <span class="cm">/* full pill */</span>
+<span class="ck">--radius-card:</span>  <span class="cv">16px</span>;
+<span class="ck">--radius-input:</span> <span class="cv">12px</span>;
+<span class="ck">--image-crop:</span>   <span class="cv">50%</span>;  <span class="cm">/* circle headshots */</span></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- WORKFLOW -->
+  <div id="dd-workflow" class="dd-panel">
+    <div class="deep-grid">
+      <div class="deep-card full-width accent-top">
+        <h3>The 6-Hour Delivery Workflow — Minute by Minute</h3>
+        <p>This is the canonical sequence for every standard website build. Deviation from this sequence requires a new config sheet and restarts the clock. The Designer and Developer work in parallel from the 45-minute mark.</p>
+      </div>
+      <div class="deep-card">
+        <h3>Hour 0 — Config & Handoff</h3>
+        <div class="spec-row"><span class="spec-key">0:00–0:30</span><span class="spec-val">Sales completes config sheet with client. Palette, shape, pages, industry confirmed.</span></div>
+        <div class="spec-row"><span class="spec-key">0:30–0:45</span><span class="spec-val">15-min handoff meeting: Sales briefs Designer + Developer together. Config sheet shared.</span></div>
+        <div class="spec-row"><span class="spec-key">0:45</span><span class="spec-val">Clock starts for Designer and Developer simultaneously.</span></div>
+      </div>
+      <div class="deep-card teal-lt-top">
+        <h3>Hours 1–2.5 — Parallel Build</h3>
+        <div class="spec-row"><span class="spec-key">Designer 0:45–2:30</span><span class="spec-val">Apply palette + shape in Figma master. Swap logo, photos. Write/adapt copy from starter pack. Adjust section order per skin.</span></div>
+        <div class="spec-row"><span class="spec-key">Developer 0:45–2:30</span><span class="spec-val">Clone template. Apply config files. Begin populating content as designer shares sections. First staging deploy at ~1:30.</span></div>
+        <div class="spec-row"><span class="spec-key">2:30–2:45</span><span class="spec-val">Quick internal design review. Designer shares Figma link. Developer previews staging. Flag any mismatches.</span></div>
+      </div>
+      <div class="deep-card">
+        <h3>Hours 2.5–4.5 — Refinement & QA</h3>
+        <div class="spec-row"><span class="spec-key">2:45–4:30</span><span class="spec-val">Designer finalises remaining pages + copy. Developer completes all pages, optimises images, checks mobile responsiveness.</span></div>
+        <div class="spec-row"><span class="spec-key">QA Checklist</span><span class="spec-val">Mobile at 375/768px · All links work · Form submits · Images optimised · Meta tags set · Favicon uploaded</span></div>
+        <div class="spec-row"><span class="spec-key">4:30</span><span class="spec-val">Staging URL shared with Sales for client review prep.</span></div>
+      </div>
+      <div class="deep-card accent-top">
+        <h3>Hours 4.5–6 — Client Review & Deploy</h3>
+        <div class="spec-row"><span class="spec-key">4:30–5:30</span><span class="spec-val">Sales runs client review call with staging link. Designer + Developer on standby for live edits during the call.</span></div>
+        <div class="spec-row"><span class="spec-key">5:30–6:00</span><span class="spec-val">Implement approved changes. Final QA pass. Connect custom domain. Publish to production.</span></div>
+        <div class="spec-row"><span class="spec-key">Scope Guard</span><span class="spec-val">Any request beyond the original config sheet is logged for a follow-up scope. Never accepted live during the call.</span></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- SALES CONFIG -->
+  <div id="dd-sales" class="dd-panel">
+    <div class="deep-grid">
+      <div class="deep-card full-width">
+        <h3>Sales Config Sheet — The Brief Document</h3>
+        <p>This is the single document that initiates every build. Sales completes it with the client in 20–30 minutes. It must be fully complete before the handoff meeting. An incomplete config sheet = build does not start.</p>
+      </div>
+      <div class="deep-card">
+        <h3>Section 1 — Client Basics</h3>
+        <div class="spec-row"><span class="spec-key">Business Name</span><span class="spec-val">Legal name as it should appear on site</span></div>
+        <div class="spec-row"><span class="spec-key">Industry</span><span class="spec-val">Select from 8 skin options (or flag as custom)</span></div>
+        <div class="spec-row"><span class="spec-key">Location</span><span class="spec-val">City/region for local SEO + map widget</span></div>
+        <div class="spec-row"><span class="spec-key">Primary Service</span><span class="spec-val">One-line description for hero headline generation</span></div>
+        <div class="spec-row"><span class="spec-key">Phone / Email</span><span class="spec-val">Contact details for form + CTA buttons</span></div>
+      </div>
+      <div class="deep-card teal-lt-top">
+        <h3>Section 2 — Visual Direction</h3>
+        <div class="spec-row"><span class="spec-key">Colour Palette</span><span class="spec-val">Select from swatch card (shown visually — not hex)</span></div>
+        <div class="spec-row"><span class="spec-key">Shape Preset</span><span class="spec-val">Sharp / Soft / Friendly (shown as thumbnail examples)</span></div>
+        <div class="spec-row"><span class="spec-key">Reference Site</span><span class="spec-val">Point to a prototype demo: "that one, but in green"</span></div>
+      </div>
+      <div class="deep-card">
+        <h3>Section 3 — Pages Required</h3>
+        <div class="spec-row"><span class="spec-key">Standard pages</span><span class="spec-val">✓ Home  ✓ About  ✓ Services  ✓ Contact</span></div>
+        <div class="spec-row"><span class="spec-key">Optional pages</span><span class="spec-val">□ Gallery  □ Blog  □ Team  □ Pricing  □ FAQ</span></div>
+      </div>
+      <div class="deep-card accent-top">
+        <h3>Section 4 — Content Inventory</h3>
+        <div class="spec-row"><span class="spec-key">Logo</span><span class="spec-val">✓ Have (SVG preferred) / □ Need placeholder</span></div>
+        <div class="spec-row"><span class="spec-key">Photos</span><span class="spec-val">✓ Have / □ Use stock (Unsplash auto-selected per industry)</span></div>
+        <div class="spec-row"><span class="spec-key">Copy</span><span class="spec-val">✓ Have (paste in notes) / □ Use starter pack</span></div>
+        <div class="spec-row"><span class="spec-key">Testimonials</span><span class="spec-val">✓ Have / □ Use placeholder text</span></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ════════════════════════════════════════════════════════════ -->
+<!-- DATA & LOGIC                                                 -->
+<!-- ════════════════════════════════════════════════════════════ -->
+<script>
+// ── DATA ─────────────────────────────────────────────────────────────────────
+
+const PHASES = [
+  {
+    id: 'p1',
+    num: '01',
+    title: 'Foundation Setup',
+    subtitle: 'Tools, accounts, and base project structure',
+    duration: 'Week 1',
+    color: '#1A2E44',
+    textColor: '#FFFFFF',
+    sections: [
+      {
+        label: 'Tooling & Access',
+        tasks: [
+          { text: 'Set up shared Figma team workspace and invite Designer + Developer', note: 'Create a dedicated "Website Factory" Figma team', badges: ['figma'], who: 'both' },
+          { text: 'Install Relume Figma plugin and connect to team library', note: 'Requires Relume subscription — confirm billing', badges: ['relume', 'figma'], who: 'design' },
+          { text: 'Create Webflow team workspace and set up billing', note: 'Workspace plan needed for multi-site management', badges: ['webflow'], who: 'dev' },
+          { text: 'Set up a shared project management board (this one!) and share with team', note: 'Use this HTML file or migrate tasks to Notion/Linear', badges: ['doc'], who: 'both' },
+          { text: 'Create a shared Google Drive folder structure for config sheets and content packs', note: 'Folders: /clients, /templates, /starter-packs, /archive', badges: ['doc'], who: 'both' },
+        ]
+      },
+      {
+        label: 'Design Tokens — Figma',
+        tasks: [
+          { text: 'Create Figma local styles for all 7 semantic colour tokens using the first palette', note: 'Start with "Corporate Navy" as the default', badges: ['figma'], who: 'design' },
+          { text: 'Create Figma text styles for the full type scale (H1–H6, Body L/M/S, Caption, Label)', note: 'Match font sizes to what Webflow will use in the template', badges: ['figma'], who: 'design' },
+          { text: 'Document the spacing scale (4px base) as Figma shared spacing variables', note: 'Name them: space-4, space-8, space-12, etc.', badges: ['figma'], who: 'design' },
+          { text: 'Set up the 12-column grid as a Figma frame style at 1440, 1280, 768, and 375px', note: 'Match Webflow breakpoint settings exactly', badges: ['figma'], who: 'design' },
+        ]
+      }
+    ]
+  },
+  {
+    id: 'p2',
+    num: '02',
+    title: 'Figma Component Library',
+    subtitle: 'Build the master component library using Relume as the source',
+    duration: 'Weeks 1–2',
+    color: '#0E7C86',
+    textColor: '#FFFFFF',
+    sections: [
+      {
+        label: 'Import & Adapt Relume Components',
+        tasks: [
+          { text: 'Import all Relume navigation components into the Figma master file', note: 'Navbar × 4, Mobile nav, Dropdown menu', badges: ['relume', 'figma'], who: 'design' },
+          { text: 'Import all Relume hero section variants (8 layouts)', note: 'Text-only, image-right, full-bleed, split, video, animated, minimal, map', badges: ['relume', 'figma'], who: 'design' },
+          { text: 'Import all Relume feature and service section variants', note: 'Grid, alternating, icon-list, comparison table, 3-col, 4-col', badges: ['relume', 'figma'], who: 'design' },
+          { text: 'Import social proof sections: testimonials, logo bars, stat counters, case study cards', badges: ['relume', 'figma'], who: 'design' },
+          { text: 'Import CTA, contact form, map, and footer components', badges: ['relume', 'figma'], who: 'design' },
+        ]
+      },
+      {
+        label: 'Add Variant Axes to Each Component',
+        tasks: [
+          { text: 'Add "Theme" variant property to all components, starting with 3 palettes', note: 'Corporate Navy, Forest Sage, Teal Trust — expand to all 20 later', badges: ['figma'], who: 'design' },
+          { text: 'Add "Shape" variant property (Sharp / Soft / Friendly) to all interactive components', note: 'Buttons, cards, inputs, modals, image crops', badges: ['figma'], who: 'design' },
+          { text: 'Verify all components use local styles (not hard-coded colours or fonts)', note: 'Audit every component — any hard-coded value breaks theme-swapping', badges: ['figma'], who: 'design' },
+          { text: 'Add hover and focus states to all interactive components', badges: ['figma'], who: 'design' },
+        ]
+      },
+      {
+        label: 'Assemble Page Templates',
+        tasks: [
+          { text: 'Assemble the Home page template by combining hero + features + social proof + CTA + footer', badges: ['figma'], who: 'design' },
+          { text: 'Assemble About, Services, Contact, and Gallery page templates', badges: ['figma'], who: 'design' },
+          { text: 'Create one complete demo at each of the 3 shape presets to validate the system visually', note: 'This becomes part of the sales prototype library', badges: ['figma'], who: 'design' },
+          { text: 'Document library usage guide: 1-page PDF explaining how to use the library for new designers', badges: ['doc', 'figma'], who: 'design' },
+        ]
+      }
+    ]
+  },
+  {
+    id: 'p3',
+    num: '03',
+    title: 'Webflow Base Template',
+    subtitle: 'Build the Webflow template that mirrors the Figma library exactly',
+    duration: 'Weeks 2–3',
+    color: '#7B5EA7',
+    textColor: '#FFFFFF',
+    sections: [
+      {
+        label: 'CSS Architecture',
+        tasks: [
+          { text: 'Set up Webflow project with all 7 CSS custom property tokens in the site-wide stylesheet', note: 'All in :root. No hard-coded colours anywhere in the project', badges: ['webflow'], who: 'dev' },
+          { text: 'Create all 20 theme CSS files — one per palette — in the /config/themes/ folder', note: 'Each file only contains the 7 token overrides', badges: ['webflow'], who: 'dev' },
+          { text: 'Create the 3 shape preset CSS files (sharp.css, soft.css, friendly.css)', badges: ['webflow'], who: 'dev' },
+          { text: 'Set up the Webflow typography scale matched to the Figma type styles', note: 'Use body tag styles, not custom classes where possible', badges: ['webflow'], who: 'dev' },
+        ]
+      },
+      {
+        label: 'Build All Components in Webflow',
+        tasks: [
+          { text: 'Build all navigation components (4 navbar variants, mobile nav)', note: 'Class names MUST match Figma component names exactly', badges: ['webflow'], who: 'dev' },
+          { text: 'Build all 8 hero section variants in Webflow', badges: ['webflow'], who: 'dev' },
+          { text: 'Build all feature and service section variants', badges: ['webflow'], who: 'dev' },
+          { text: 'Build testimonial, logo bar, stats, and CTA components', badges: ['webflow'], who: 'dev' },
+          { text: 'Build contact forms (3 variants) and footer components (3 variants)', badges: ['webflow'], who: 'dev' },
+          { text: 'QA all components against Figma — pixel-check at 1440px and 375px', note: 'Use Figma mirror side-by-side. Flag any drift to Designer.', badges: ['webflow', 'figma'], who: 'both' },
+        ]
+      },
+      {
+        label: 'Theme & Shape Testing',
+        tasks: [
+          { text: 'Test all 20 theme switches on the full component set — no broken states', note: 'Every component must look correct with every palette', badges: ['webflow'], who: 'dev' },
+          { text: 'Test all 3 shape presets on buttons, cards, inputs, and images', badges: ['webflow'], who: 'dev' },
+          { text: 'Test full site at all 5 breakpoints (320, 768, 992, 1280, 1440px)', badges: ['webflow'], who: 'dev' },
+          { text: 'Verify template clones correctly into a new Webflow project without breaking styles', badges: ['webflow'], who: 'dev' },
+        ]
+      }
+    ]
+  },
+  {
+    id: 'p4',
+    num: '04',
+    title: 'Industry Skins & Content Packs',
+    subtitle: 'Build the 8 industry configurations and starter content documents',
+    duration: 'Week 3',
+    color: '#F0A500',
+    textColor: '#0F1923',
+    sections: [
+      {
+        label: 'Industry Skin JSON Files',
+        tasks: [
+          { text: 'Add data-industry attributes to all Webflow sections', note: 'Each section tagged with its target industries or "all"', badges: ['webflow'], who: 'dev' },
+          { text: 'Write the Trades industry skin JSON (section order + copy starters)', badges: ['doc', 'webflow'], who: 'both' },
+          { text: 'Write the Law Firm industry skin JSON', badges: ['doc', 'webflow'], who: 'both' },
+          { text: 'Write the Health & Wellness industry skin JSON', badges: ['doc', 'webflow'], who: 'both' },
+          { text: 'Write the Restaurant & Cafe industry skin JSON', badges: ['doc', 'webflow'], who: 'both' },
+          { text: 'Write the Retail industry skin JSON', badges: ['doc', 'webflow'], who: 'both' },
+          { text: 'Write the Real Estate industry skin JSON', badges: ['doc', 'webflow'], who: 'both' },
+          { text: 'Write the Professional Services industry skin JSON', badges: ['doc', 'webflow'], who: 'both' },
+          { text: 'Write the Creative Agency industry skin JSON', badges: ['doc', 'webflow'], who: 'both' },
+        ]
+      },
+      {
+        label: 'Content Starter Packs',
+        tasks: [
+          { text: 'Create the Trades content starter pack (headlines, service descriptions, FAQs, CTA copy)', note: 'Aim for 80% usable without edits — only swap [City] and [Business Name]', badges: ['doc'], who: 'design' },
+          { text: 'Create the Law Firm content starter pack', badges: ['doc'], who: 'design' },
+          { text: 'Create the Health & Wellness content starter pack', badges: ['doc'], who: 'design' },
+          { text: 'Create starter packs for remaining 5 industries', badges: ['doc'], who: 'design' },
+          { text: 'Create a stock image curation list per industry (Unsplash collections)', note: 'Curate 20–30 images per industry so developers always have appropriate visuals', badges: ['doc'], who: 'design' },
+        ]
+      }
+    ]
+  },
+  {
+    id: 'p5',
+    num: '05',
+    title: 'Prototype Library & Sales Tool',
+    subtitle: 'Build the 8 live demo sites that Sales presents to clients',
+    duration: 'Weeks 4–5',
+    color: '#14B8C8',
+    textColor: '#0F1923',
+    sections: [
+      {
+        label: 'Build Live Demo Sites',
+        tasks: [
+          { text: 'Build Demo 01 — Trades (Sharp preset, Corporate Navy, fictional plumbing co)', note: 'Full 5 pages, real-looking content, published to subdomain', badges: ['webflow'], who: 'dev' },
+          { text: 'Build Demo 02 — Law Firm (Sharp, Charcoal Minimal)', badges: ['webflow'], who: 'dev' },
+          { text: 'Build Demo 03 — Health & Wellness (Friendly, Teal Trust)', badges: ['webflow'], who: 'dev' },
+          { text: 'Build Demo 04 — Restaurant (Friendly, Cherry Bold)', badges: ['webflow'], who: 'dev' },
+          { text: 'Build Demo 05 — Retail (Soft, Berry Luxury)', badges: ['webflow'], who: 'dev' },
+          { text: 'Build Demo 06 — Professional Services (Sharp, Corporate Navy)', badges: ['webflow'], who: 'dev' },
+          { text: 'Build Demo 07 — Real Estate (Soft, Ocean Deep)', badges: ['webflow'], who: 'dev' },
+          { text: 'Build Demo 08 — Creative Agency (Friendly, Warm Terracotta)', badges: ['webflow'], who: 'dev' },
+        ]
+      },
+      {
+        label: 'Sales Tool Setup',
+        tasks: [
+          { text: 'Create the Sales Config Sheet as a fillable PDF or Google Form', note: 'Must be completable on a phone during a client meeting', badges: ['doc'], who: 'both' },
+          { text: 'Create a visual palette swatch card (physical + digital) for Sales to use with clients', note: 'A5 card with all 20 palettes named — NOT hex codes', badges: ['design'], who: 'design' },
+          { text: 'Create a shape preset comparison card (physical + digital)', note: 'Show all 3 presets with the same example button and card', badges: ['design'], who: 'design' },
+          { text: 'Write the Sales Handoff Guide — one page explaining what to give Designer/Developer', badges: ['doc'], who: 'both' },
+          { text: 'Run a 30-minute Sales team training session on how to use the config sheet + demo sites', badges: ['doc'], who: 'both' },
+        ]
+      }
+    ]
+  },
+  {
+    id: 'p6',
+    num: '06',
+    title: 'Pilot Builds & Process Lock',
+    subtitle: 'Run 3 real client builds to validate and refine the system',
+    duration: 'Week 6',
+    color: '#2DC653',
+    textColor: '#0F1923',
+    sections: [
+      {
+        label: 'Pilot Build 1',
+        tasks: [
+          { text: 'Run first live client build end-to-end using the full system', note: 'Record time for each phase — Sales config, handoff, design, build, review, deploy', badges: ['both'], who: 'both' },
+          { text: 'Log every friction point in the 15-min post-build retro', badges: ['doc'], who: 'both' },
+          { text: 'Note any component missing from the library that was needed', badges: ['doc'], who: 'both' },
+        ]
+      },
+      {
+        label: 'Pilot Build 2 & 3',
+        tasks: [
+          { text: 'Implement fixes from Pilot 1 retro before starting Pilot 2', badges: ['both'], who: 'both' },
+          { text: 'Run Pilot 2 with a different industry and team member', badges: ['both'], who: 'both' },
+          { text: 'Run Pilot 3 with the goal of hitting the 6-hour benchmark', badges: ['both'], who: 'both' },
+        ]
+      },
+      {
+        label: 'System Finalisation',
+        tasks: [
+          { text: 'Update Figma library with any new components identified during pilots', badges: ['figma'], who: 'design' },
+          { text: 'Update Webflow template with any new components or fixes', badges: ['webflow'], who: 'dev' },
+          { text: 'Finalise all process documentation and add to team handbook', badges: ['doc'], who: 'both' },
+          { text: 'Schedule quarterly library review meeting to plan next round of component additions', badges: ['doc'], who: 'both' },
+          { text: 'Present results to stakeholders — actual time achieved vs 6hr target', badges: ['doc'], who: 'both' },
+        ]
+      }
+    ]
+  }
+];
+
+const KANBAN_CARDS = [
+  // BACKLOG
+  { col: 'backlog', title: 'Define full list of Relume components to import', tag: 'Relume', tagClass: 'tag-relume', body: 'Audit Relume library and select the specific components that cover all standard site sections.', role: 'Designer', roleClass: 'role-designer', effort: '2hrs' },
+  { col: 'backlog', title: 'Design stock image curation workflow', tag: 'System', tagClass: 'tag-system', body: 'Define how images are sourced, resized, and named per project.', role: 'Designer', roleClass: 'role-designer', effort: '1hr' },
+  { col: 'backlog', title: 'Write 4 remaining industry content starter packs', tag: 'Content', tagClass: 'tag-content', body: 'Retail, Real Estate, Professional Services, Creative Agency packs.', role: 'Designer', roleClass: 'role-designer', effort: '4hrs' },
+  { col: 'backlog', title: 'Build Demo Sites 5–8', tag: 'Webflow', tagClass: 'tag-webflow', body: 'Retail, Professional Services, Real Estate, Creative Agency demo builds.', role: 'Developer', roleClass: 'role-developer', effort: '8hrs' },
+  { col: 'backlog', title: 'Sales team training session', tag: 'System', tagClass: 'tag-system', body: 'Walk Sales through config sheet, demo sites, and what to promise (and not promise).', role: 'Both', roleClass: 'role-both', effort: '1.5hrs' },
+
+  // TO DO
+  { col: 'todo', title: 'Set up Figma team workspace + Relume plugin', tag: 'Figma', tagClass: 'tag-figma', body: 'Create team, invite members, install Relume plugin, connect billing.', role: 'Designer', roleClass: 'role-designer', effort: '0.5hr' },
+  { col: 'todo', title: 'Create Webflow workspace + base project', tag: 'Webflow', tagClass: 'tag-webflow', body: 'Set up Webflow team, create the base template project, configure global styles.', role: 'Developer', roleClass: 'role-developer', effort: '1hr' },
+  { col: 'todo', title: 'Build CSS token architecture in Webflow', tag: 'Webflow', tagClass: 'tag-webflow', body: 'All 7 semantic tokens in :root. Create 20 theme CSS files and 3 shape preset files.', role: 'Developer', roleClass: 'role-developer', effort: '3hrs' },
+  { col: 'todo', title: 'Create Figma design token styles', tag: 'Figma', tagClass: 'tag-figma', body: 'Local colour, text, and spacing styles using all semantic token names.', role: 'Designer', roleClass: 'role-designer', effort: '2hrs' },
+  { col: 'todo', title: 'Write industry skin JSON for Trades + Law', tag: 'System', tagClass: 'tag-system', body: 'Section order, visibility, and copy starter strings for the first two industry skins.', role: 'Both', roleClass: 'role-both', effort: '3hrs' },
+
+  // IN PROGRESS
+  { col: 'inprog', title: 'Import Relume components into Figma master', tag: 'Figma', tagClass: 'tag-figma', body: 'Importing all nav, hero, features, social proof, CTA, contact, and footer components from Relume.', role: 'Designer', roleClass: 'role-designer', effort: '6hrs' },
+  { col: 'inprog', title: 'Add theme + shape variant axes to components', tag: 'Figma', tagClass: 'tag-figma', body: 'Adding Theme and Shape variant properties to all interactive components.', role: 'Designer', roleClass: 'role-designer', effort: '4hrs' },
+  { col: 'inprog', title: 'Build nav + hero components in Webflow', tag: 'Webflow', tagClass: 'tag-webflow', body: 'Matching Figma components exactly in Webflow with matching class names.', role: 'Developer', roleClass: 'role-developer', effort: '4hrs' },
+
+  // IN REVIEW
+  { col: 'review', title: 'Figma ↔ Webflow component pixel QA', tag: 'Figma', tagClass: 'tag-figma', body: 'Side-by-side comparison at 1440px and 375px. Log any drift between Figma and Webflow.', role: 'Both', roleClass: 'role-both', effort: '2hrs' },
+  { col: 'review', title: 'Trades content starter pack review', tag: 'Content', tagClass: 'tag-content', body: 'Review headline, CTA, and FAQ copy — ensure it reads like a real business, not AI filler.', role: 'Designer', roleClass: 'role-designer', effort: '1hr' },
+
+  // DONE
+  { col: 'done', title: 'Define spacing scale and grid system', tag: 'System', tagClass: 'tag-system', body: '4px base unit documented. 12-col, 24px gutter, Webflow breakpoints confirmed.', role: 'Both', roleClass: 'role-both', effort: '1hr' },
+  { col: 'done', title: 'Component naming convention agreed', tag: 'System', tagClass: 'tag-system', body: 'Figma and Webflow will use identical component names for all elements.', role: 'Both', roleClass: 'role-both', effort: '0.5hr' },
+];
+
+// ── RENDER CHECKLIST ─────────────────────────────────────────────────────────
+
+function badgeHTML(badges) {
+  if (!badges || !badges.length) return '';
+  const map = {
+    figma:   ['tb-figma','Figma'],
+    webflow: ['tb-webflow','Webflow'],
+    relume:  ['tb-relume','Relume'],
+    doc:     ['tb-doc','Docs'],
+    design:  ['tb-design','Design'],
+    dev:     ['tb-dev','Dev'],
+    both:    ['tb-both','Both']
+  };
+  return badges.map(b => map[b] ? `<span class="task-badge ${map[b][0]}">${map[b][1]}</span>` : '').join('');
+}
+
+function renderChecklist() {
+  const container = document.getElementById('phases');
+  container.innerHTML = '';
+
+  PHASES.forEach(phase => {
+    const allTasks = phase.sections.flatMap(s => s.tasks);
+    const totalCount = allTasks.length;
+
+    const block = document.createElement('div');
+    block.className = 'phase-block';
+    block.id = phase.id;
+
+    const sectionHTML = phase.sections.map(sec => `
+      <div class="section-label">${sec.label}</div>
+      <div class="task-list">
+        ${sec.tasks.map((task, ti) => `
+          <div class="task-item" data-phase="${phase.id}" data-task="${ti}" onclick="toggleTask(this)">
+            <div class="task-check">✓</div>
+            <div class="task-content">
+              <div class="task-text">${task.text}</div>
+              ${task.note ? `<div class="task-note">💡 ${task.note}</div>` : ''}
+              <div class="task-badges">${badgeHTML(task.badges)}</div>
+            </div>
+          </div>`).join('')}
+      </div>`).join('');
+
+    block.innerHTML = `
+      <div class="phase-header" onclick="togglePhase('${phase.id}')"
+           style="background:${phase.color};color:${phase.textColor}">
+        <div class="phase-num" style="background:rgba(255,255,255,0.2);color:${phase.textColor}">${phase.num}</div>
+        <div class="phase-title-wrap">
+          <div class="phase-title">${phase.title}</div>
+          <div class="phase-subtitle">${phase.subtitle}</div>
+        </div>
+        <div class="phase-meta">
+          <span class="phase-duration" style="background:rgba(255,255,255,0.15);color:${phase.textColor}">${phase.duration}</span>
+          <div class="phase-progress-wrap">
+            <div class="phase-progress-bar">
+              <div class="phase-progress-fill" id="prog-${phase.id}" style="width:0%"></div>
+            </div>
+            <div class="phase-progress-label" id="prog-label-${phase.id}">0 / ${totalCount} tasks</div>
+          </div>
+          <div class="phase-toggle" id="toggle-${phase.id}">▶</div>
+        </div>
+      </div>
+      <div class="phase-body" id="body-${phase.id}">
+        ${sectionHTML}
+      </div>`;
+
+    container.appendChild(block);
+  });
+}
+
+function togglePhase(id) {
+  const body   = document.getElementById('body-'   + id);
+  const toggle = document.getElementById('toggle-' + id);
+  if (!body) return;
+  const isOpen = body.classList.toggle('open');
+  if (toggle) toggle.textContent = isOpen ? '▼' : '▶';
+}
+
+// ── CHECKLIST TASK TOGGLE ────────────────────────────────────────────────────
+
+function toggleTask(el) {
+  el.classList.toggle('checked');
+  updateProgress();
+  saveChecklist();   // auto-save on every tick
+}
+
+function updateProgress() {
+  const allItems = document.querySelectorAll('.task-item');
+  const total    = allItems.length;
+  const done     = document.querySelectorAll('.task-item.checked').length;
+  const pct      = total ? Math.round((done / total) * 100) : 0;
+
+  const fill = document.getElementById('overall-fill');
+  const pctEl = document.getElementById('overall-pct');
+  const doneEl = document.getElementById('done-count');
+  const remEl  = document.getElementById('remaining-count');
+  const totEl  = document.getElementById('total-tasks-display');
+  if (fill)  fill.style.width = pct + '%';
+  if (pctEl) pctEl.textContent = pct + '%';
+  if (doneEl) doneEl.textContent = done;
+  if (remEl)  remEl.textContent  = total - done;
+  if (totEl)  totEl.textContent  = total;
+
+  PHASES.forEach(phase => {
+    const phItems = document.querySelectorAll(`.task-item[data-phase="${phase.id}"]`);
+    const phTotal = phItems.length;
+    const phDone  = document.querySelectorAll(`.task-item[data-phase="${phase.id}"].checked`).length;
+    const phPct   = phTotal ? Math.round((phDone / phTotal) * 100) : 0;
+    const prog  = document.getElementById('prog-'       + phase.id);
+    const label = document.getElementById('prog-label-' + phase.id);
+    if (prog)  prog.style.width  = phPct + '%';
+    if (label) label.textContent = `${phDone} / ${phTotal} tasks`;
+  });
+}
+
+// ── DRAG AND DROP KANBAN ─────────────────────────────────────────────────────
+
+const cardState = KANBAN_CARDS.map((c, i) => ({ ...c, id: 'card-' + i }));
+
+let dragSrc = null;
+let dragGhost = null;
+let dragOffsetX = 0, dragOffsetY = 0;
+let dropTarget = null;
+let dropPlaceholder = null;
+
+const COLS = [
+  { id: 'backlog',  label: 'Backlog',      cls: 'col-backlog'  },
+  { id: 'todo',     label: 'To Do',        cls: 'col-todo'     },
+  { id: 'inprog',   label: 'In Progress',  cls: 'col-inprog'   },
+  { id: 'review',   label: 'In Review',    cls: 'col-review'   },
+  { id: 'done',     label: 'Done',         cls: 'col-done'     },
+  { id: 'archive',  label: '🗄 Archive',   cls: 'col-archive'  },
+];
+
+function buildCardEl(card) {
+  const el = document.createElement('div');
+  el.className = 'card draggable';
+  el.dataset.cardId = card.id;
+  el.innerHTML = `
+    <button class="card-edit-btn" onmousedown="event.stopPropagation()" onclick="event.stopPropagation();openEditModal('${card.id}')" title="Edit card">✎</button>
+    <div class="drag-handle">⠿</div>
+    <span class="card-tag ${card.tagClass}">${card.tag}</span>
+    <div class="card-title">${card.title}</div>
+    <div class="card-body">${card.body || ''}</div>
+    <div class="card-footer">
+      <span class="card-role ${card.roleClass}">${card.role}</span>
+      <span class="card-effort">~${card.effort}</span>
+    </div>`;
+  el.addEventListener('mousedown',  onCardMouseDown);
+  el.addEventListener('touchstart', onCardTouchStart, { passive: false });
+  return el;
+}
+
+function updateColCounts() {
+  COLS.forEach(col => {
+    const body   = document.getElementById('col-body-' + col.id);
+    const header = document.getElementById('col-count-' + col.id);
+    if (!body || !header) return;
+    header.textContent = body.querySelectorAll('.card.draggable').length;
+  });
+}
+
+function renderKanban() {
+  const wrap = document.querySelector('.kanban-wrap');
+  wrap.innerHTML = '';
+  COLS.forEach(col => {
+    const colEl = document.createElement('div');
+    colEl.className = `kanban-col ${col.cls}`;
+    colEl.innerHTML = `
+      <div class="col-header">
+        <span>${col.label}</span>
+        <span class="col-count" id="col-count-${col.id}">0</span>
+      </div>
+      <div class="col-body drop-zone" id="col-body-${col.id}" data-col="${col.id}"></div>`;
+    wrap.appendChild(colEl);
+  });
+  cardState.forEach(card => {
+    const body = document.getElementById('col-body-' + card.col);
+    if (body) body.appendChild(buildCardEl(card));
+  });
+  updateColCounts();
+  // Add "+ Add card" footer button to every column
+  addColumnFooters();
+}
+
+// ── PLACEHOLDER ──────────────────────────────────────────────────────────────
+
+function createPlaceholder(h) {
+  const ph = document.createElement('div');
+  ph.className = 'drop-placeholder';
+  ph.style.height = h + 'px';
+  return ph;
+}
+function removePlaceholder() {
+  if (dropPlaceholder && dropPlaceholder.parentNode)
+    dropPlaceholder.parentNode.removeChild(dropPlaceholder);
+  dropPlaceholder = null;
+}
+
+// ── MOUSE ────────────────────────────────────────────────────────────────────
+
+function onCardMouseDown(e) {
+  if (e.button !== 0) return;
+  startDrag(e.currentTarget, e.clientX, e.clientY);
+  window.addEventListener('mousemove', onMouseMove);
+  window.addEventListener('mouseup',   onMouseUp);
+  e.preventDefault();
+}
+function onMouseMove(e)  { moveDrag(e.clientX, e.clientY); }
+function onMouseUp(e)    {
+  endDrag(e.clientX, e.clientY);
+  window.removeEventListener('mousemove', onMouseMove);
+  window.removeEventListener('mouseup',   onMouseUp);
+}
+
+// ── TOUCH ────────────────────────────────────────────────────────────────────
+
+function onCardTouchStart(e) {
+  const t = e.touches[0];
+  startDrag(e.currentTarget, t.clientX, t.clientY);
+  window.addEventListener('touchmove', onTouchMove, { passive: false });
+  window.addEventListener('touchend',  onTouchEnd);
+  e.preventDefault();
+}
+function onTouchMove(e) { const t = e.touches[0]; moveDrag(t.clientX, t.clientY); e.preventDefault(); }
+function onTouchEnd(e)  { const t = e.changedTouches[0]; endDrag(t.clientX, t.clientY);
+  window.removeEventListener('touchmove', onTouchMove);
+  window.removeEventListener('touchend',  onTouchEnd); }
+
+// ── CORE DRAG ────────────────────────────────────────────────────────────────
+
+function startDrag(card, cx, cy) {
+  dragSrc = card;
+  const rect = card.getBoundingClientRect();
+  dragOffsetX = cx - rect.left;
+  dragOffsetY = cy - rect.top;
+
+  dragGhost = card.cloneNode(true);
+  dragGhost.className = 'card drag-ghost';
+  dragGhost.style.cssText = `width:${rect.width}px;height:${rect.height}px;left:${rect.left}px;top:${rect.top}px`;
+  document.body.appendChild(dragGhost);
+  requestAnimationFrame(() => dragGhost && dragGhost.classList.add('ghost-active'));
+
+  dropPlaceholder = createPlaceholder(rect.height);
+  card.parentNode.insertBefore(dropPlaceholder, card);
+  card.style.display = 'none';
+  card.classList.add('being-dragged');
+}
+
+function moveDrag(cx, cy) {
+  if (!dragGhost) return;
+  dragGhost.style.left = (cx - dragOffsetX) + 'px';
+  dragGhost.style.top  = (cy - dragOffsetY) + 'px';
+
+  dragGhost.style.pointerEvents = 'none';
+  const el = document.elementFromPoint(cx, cy);
+  dragGhost.style.pointerEvents = '';
+
+  const zone = el ? el.closest('.drop-zone') : null;
+
+  if (zone !== dropTarget) {
+    document.querySelectorAll('.drop-zone').forEach(z => z.classList.remove('drop-active'));
+    dropTarget = zone;
+    if (zone) zone.classList.add('drop-active');
+  }
+
+  if (zone) {
+    const midY = cy;
+    const cards = [...zone.querySelectorAll('.card.draggable:not(.being-dragged)')];
+    let inserted = false;
+    for (const c of cards) {
+      const r = c.getBoundingClientRect();
+      if (midY < r.top + r.height / 2) {
+        zone.insertBefore(dropPlaceholder, c);
+        inserted = true; break;
+      }
+    }
+    if (!inserted) zone.appendChild(dropPlaceholder);
+  }
+}
+
+function endDrag(cx, cy) {
+  if (!dragSrc) return;
+
+  const zone = dropTarget || dragSrc.closest('.drop-zone') || dragSrc.parentNode;
+  zone.insertBefore(dragSrc, dropPlaceholder);
+  dragSrc.style.display = '';
+  dragSrc.classList.remove('being-dragged');
+  dragSrc.classList.add('card-dropped');
+  setTimeout(() => dragSrc && dragSrc.classList.remove('card-dropped'), 400);
+
+  removePlaceholder();
+  document.querySelectorAll('.drop-zone').forEach(z => z.classList.remove('drop-active'));
+
+  if (dragGhost) {
+    dragGhost.classList.remove('ghost-active');
+    dragGhost.classList.add('ghost-return');
+    setTimeout(() => { if (dragGhost && dragGhost.parentNode) dragGhost.parentNode.removeChild(dragGhost); dragGhost = null; }, 180);
+  }
+
+  const colId = zone.dataset ? zone.dataset.col : null;
+  if (colId) {
+    const card = cardState.find(c => c.id === dragSrc.dataset.cardId);
+    if (card) card.col = colId;
+    if (colId === 'done') dragSrc.classList.add('card-done');
+    else dragSrc.classList.remove('card-done');
+  }
+
+  dragSrc = null;
+  dropTarget = null;
+  updateColCounts();
+  saveKanban();   // auto-save on every drop
+}
+
+// ── VIEW SWITCHING ────────────────────────────────────────────────────────────
+
+function switchView(id) {
+  document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
+  document.querySelectorAll('.nav-tab').forEach(t => t.classList.remove('active'));
+  document.getElementById('view-' + id).classList.add('active');
+  const tabs = document.querySelectorAll('.nav-tab');
+  const idx = { checklist: 0, kanban: 1, deepdive: 2 };
+  if (tabs[idx[id]]) tabs[idx[id]].classList.add('active');
+}
+
+function switchDD(id) {
+  document.querySelectorAll('.dd-panel').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.dd-tab').forEach(t => t.classList.remove('active'));
+  const panel = document.getElementById('dd-' + id);
+  if (panel) panel.classList.add('active');
+  // Highlight tab whose onclick contains this id
+  document.querySelectorAll('.dd-tab').forEach(t => {
+    const oc = t.getAttribute('onclick') || '';
+    if (oc.indexOf("'" + id + "'") !== -1) t.classList.add('active');
+  });
+}
+
+// ── MISC ─────────────────────────────────────────────────────────────────────
+
+function dismissHint() {
+  const h = document.getElementById('drag-hint');
+  if (h) { h.classList.add('hidden'); setTimeout(() => h.remove(), 700); }
+}
+
+// ── PERSISTENCE ───────────────────────────────────────────────────────────────
+
+const STORAGE_CL  = 'wf_checklist';
+const STORAGE_KAN = 'wf_kanban';
+
+function saveChecklist() {
+  const checked = [];
+  document.querySelectorAll('.task-item.checked').forEach(el => {
+    checked.push(el.dataset.phase + ':' + el.dataset.task);
+  });
+  try { localStorage.setItem(STORAGE_CL, JSON.stringify(checked)); } catch(e) {}
+  showSaved();
+}
+
+function saveKanban() {
+  const state = [];
+  document.querySelectorAll('.col-body.drop-zone').forEach(zone => {
+    const col = zone.dataset.col;
+    zone.querySelectorAll('.card.draggable').forEach(card => {
+      state.push({ id: card.dataset.cardId, col });
+    });
+  });
+  try { localStorage.setItem(STORAGE_KAN, JSON.stringify(state)); } catch(e) {}
+  showSaved();
+}
+
+function restoreChecklist() {
+  try {
+    const raw = localStorage.getItem(STORAGE_CL);
+    if (!raw) return false;
+    const checked = JSON.parse(raw);
+    if (!checked.length) return false;
+    checked.forEach(key => {
+      const [phase, task] = key.split(':');
+      const el = document.querySelector(`.task-item[data-phase="${phase}"][data-task="${task}"]`);
+      if (el) el.classList.add('checked');
+    });
+    return true;
+  } catch(e) { return false; }
+}
+
+function restoreKanban() {
+  try {
+    const raw = localStorage.getItem(STORAGE_KAN);
+    if (!raw) return false;
+    const saved = JSON.parse(raw);
+    if (!saved.length) return false;
+
+    // Move cards to saved columns & order — NO re-render, just DOM manipulation
+    saved.forEach(({ id, col }) => {
+      const card = cardState.find(c => c.id === id);
+      if (card) card.col = col;
+      const cardEl = document.querySelector(`[data-card-id="${id}"]`);
+      const zone   = document.getElementById('col-body-' + col);
+      if (cardEl && zone) zone.appendChild(cardEl);
+    });
+    updateColCounts();
+
+    // Restore done styling
+    document.querySelectorAll('#col-body-done .card').forEach(c => c.classList.add('card-done'));
+    // Archive cards: just leave as-is (CSS handles the greyed look)
+    return true;
+  } catch(e) { return false; }
+}
+
+function showSaved() {
+  const dot   = document.getElementById('save-dot');
+  const label = document.getElementById('save-label');
+  if (!dot || !label) return;
+  dot.style.background = '#10b981';
+  label.textContent = '✓ Saved';
+  label.style.color = '#10b981';
+  clearTimeout(showSaved._t);
+  showSaved._t = setTimeout(() => {
+    label.textContent = 'Progress saved';
+    label.style.color = '#6b7280';
+  }, 1800);
+}
+
+function setSaveIndicator(has) {
+  const dot   = document.getElementById('save-dot');
+  const label = document.getElementById('save-label');
+  if (!dot || !label) return;
+  dot.style.background = has ? '#10b981' : '#6b7280';
+  label.textContent    = has ? 'Progress saved' : 'No saved data';
+}
+
+function clearSavedState() {
+  if (!confirm('Reset all progress? This clears all checked tasks and kanban positions. Cannot be undone.')) return;
+  try { localStorage.removeItem(STORAGE_CL); localStorage.removeItem(STORAGE_KAN); } catch(e) {}
+
+  // Reset checklist
+  renderChecklist();
+  updateProgress();
+
+  // Reset kanban — restore original col on cardState then re-render
+  KANBAN_CARDS.forEach((src, i) => {
+    const c = cardState.find(c => c.id === 'card-' + i);
+    if (c) c.col = src.col;
+  });
+  renderKanban();
+
+  setSaveIndicator(false);
+}
+
+// ── EXPORT / IMPORT ──────────────────────────────────────────────────────────
+
+function exportProgress() {
+  // Collect current checklist state from DOM
+  const checked = [];
+  document.querySelectorAll('.task-item.checked').forEach(el => {
+    checked.push(el.dataset.phase + ':' + el.dataset.task);
+  });
+
+  // Collect current kanban state from DOM (column + order)
+  const kanban = [];
+  document.querySelectorAll('.col-body.drop-zone').forEach(zone => {
+    const col = zone.dataset.col;
+    zone.querySelectorAll('.card.draggable').forEach(card => {
+      kanban.push({ id: card.dataset.cardId, col });
+    });
+  });
+
+  const payload = {
+    version: 1,
+    exported: new Date().toISOString(),
+    checklist: checked,
+    kanban: kanban
+  };
+
+  const blob = new Blob([JSON.stringify(payload, null, 2)], { type: 'application/json' });
+  const url  = URL.createObjectURL(blob);
+  const a    = document.createElement('a');
+  const date = new Date().toISOString().slice(0,10);
+  a.href     = url;
+  a.download = 'wf-progress-' + date + '.json';
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+
+  // Flash confirmation
+  showToast('✓ Progress exported — save the .json file somewhere safe!', 3000);
+}
+
+function importProgress(event) {
+  const file = event.target.files[0];
+  if (!file) return;
+
+  const reader = new FileReader();
+  reader.onload = function(e) {
+    try {
+      const payload = JSON.parse(e.target.result);
+
+      // Validate structure
+      if (!payload.version || !Array.isArray(payload.checklist) || !Array.isArray(payload.kanban)) {
+        showToast("⚠ Invalid file — make sure you're loading a Website Factory export.", 3500, true);
+        return;
+      }
+
+      // Save to localStorage so it persists after page reload
+      localStorage.setItem(STORAGE_CL,  JSON.stringify(payload.checklist));
+      localStorage.setItem(STORAGE_KAN, JSON.stringify(payload.kanban));
+
+      // Apply to DOM immediately without full re-render
+      // 1. Uncheck all, then re-check saved ones
+      document.querySelectorAll('.task-item.checked').forEach(el => el.classList.remove('checked'));
+      payload.checklist.forEach(key => {
+        const [phase, task] = key.split(':');
+        const el = document.querySelector(`.task-item[data-phase="${phase}"][data-task="${task}"]`);
+        if (el) el.classList.add('checked');
+      });
+      updateProgress();
+
+      // 2. Move kanban cards to their saved columns + order
+      payload.kanban.forEach(({ id, col }) => {
+        const card = cardState.find(c => c.id === id);
+        if (card) card.col = col;
+        const cardEl = document.querySelector(`[data-card-id="${id}"]`);
+        const zone   = document.getElementById('col-body-' + col);
+        if (cardEl && zone) zone.appendChild(cardEl);
+      });
+      updateColCounts();
+
+      // 3. Restore done styling (archive uses CSS only, no class needed)
+      document.querySelectorAll('.col-body.drop-zone').forEach(zone => {
+        const isDone = zone.dataset.col === 'done';
+        zone.querySelectorAll('.card.draggable').forEach(card => {
+          if (isDone) card.classList.add('card-done');
+          else card.classList.remove('card-done');
+        });
+      });
+
+      setSaveIndicator(true);
+
+      const exportDate = payload.exported ? new Date(payload.exported).toLocaleDateString('en-AU', { day:'numeric', month:'short', year:'numeric' }) : 'unknown date';
+      showToast('✓ Progress imported from ' + exportDate, 3000);
+
+    } catch(err) {
+      showToast('⚠ Could not read file — is it a valid .json export?', 3500, true);
+    }
+  };
+  reader.readAsText(file);
+
+  // Reset the input so the same file can be re-imported if needed
+  event.target.value = '';
+}
+
+function showToast(msg, duration, isError) {
+  // Remove any existing toast
+  const existing = document.getElementById('wf-toast');
+  if (existing) existing.remove();
+
+  const toast = document.createElement('div');
+  toast.id = 'wf-toast';
+  toast.textContent = msg;
+  toast.style.cssText = [
+    'position:fixed',
+    'bottom:28px',
+    'left:50%',
+    'transform:translateX(-50%) translateY(10px)',
+    'background:' + (isError ? '#7f1d1d' : '#0F1923'),
+    'color:' + (isError ? '#fca5a5' : '#14B8C8'),
+    'border:1px solid ' + (isError ? 'rgba(239,68,68,0.4)' : 'rgba(20,184,200,0.3)'),
+    'font-size:12px',
+    'font-weight:600',
+    'padding:10px 20px',
+    'border-radius:8px',
+    'box-shadow:0 8px 32px rgba(0,0,0,0.4)',
+    'z-index:9999',
+    'opacity:0',
+    'transition:all 0.25s',
+    'white-space:nowrap',
+    'pointer-events:none'
+  ].join(';');
+
+  document.body.appendChild(toast);
+  requestAnimationFrame(() => {
+    toast.style.opacity = '1';
+    toast.style.transform = 'translateX(-50%) translateY(0)';
+  });
+  setTimeout(() => {
+    toast.style.opacity = '0';
+    toast.style.transform = 'translateX(-50%) translateY(8px)';
+    setTimeout(() => toast.remove(), 300);
+  }, duration || 2500);
+}
+
+// ── CARD COUNTER (for unique IDs on new cards) ───────────────────────────────
+let customCardCounter = 0;
+let editingCardId = null; // null = new card, string = editing existing
+
+// ── ADD-CARD BUTTON IN EACH COLUMN FOOTER ────────────────────────────────────
+function addColumnFooters() {
+  COLS.forEach(col => {
+    const zone = document.getElementById('col-body-' + col.id);
+    if (!zone) return;
+    const btn = document.createElement('button');
+    btn.className = 'add-card-btn';
+    btn.dataset.col = col.id;
+    btn.innerHTML = '+ Add card';
+    btn.addEventListener('click', () => openCardModal(col.id));
+    // Append after the zone (as a sibling inside the kanban-col)
+    zone.parentNode.appendChild(btn);
+  });
+}
+
+// ── MODAL OPEN / CLOSE ───────────────────────────────────────────────────────
+function openCardModal(defaultCol) {
+  editingCardId = null;
+  document.getElementById('modal-title').textContent = 'New Card';
+  document.getElementById('cf-title').value = '';
+  document.getElementById('cf-body').value = '';
+  document.getElementById('cf-effort').value = '';
+  document.getElementById('cf-tag').value = 'System|tag-system';
+  document.getElementById('cf-role').value = 'Designer|role-designer';
+  const colSel = document.getElementById('cf-col');
+  colSel.value = defaultCol || 'todo';
+  document.getElementById('modal-delete-btn').style.display = 'none';
+  document.getElementById('card-modal').classList.add('open');
+  setTimeout(() => document.getElementById('cf-title').focus(), 80);
+}
+
+function openEditModal(cardId) {
+  const card = cardState.find(c => c.id === cardId);
+  if (!card) return;
+  editingCardId = cardId;
+  document.getElementById('modal-title').textContent = 'Edit Card';
+  document.getElementById('cf-title').value  = card.title;
+  document.getElementById('cf-body').value   = card.body;
+  document.getElementById('cf-effort').value = card.effort || '';
+  // Set tag select
+  const tagSel = document.getElementById('cf-tag');
+  for (const opt of tagSel.options) {
+    if (opt.value.startsWith(card.tag + '|')) { tagSel.value = opt.value; break; }
+  }
+  // Set role select
+  const roleSel = document.getElementById('cf-role');
+  for (const opt of roleSel.options) {
+    if (opt.value.startsWith(card.role + '|')) { roleSel.value = opt.value; break; }
+  }
+  // Set column
+  const colSel = document.getElementById('cf-col');
+  colSel.value = card.col;
+  document.getElementById('modal-delete-btn').style.display = 'inline-flex';
+  document.getElementById('card-modal').classList.add('open');
+  setTimeout(() => document.getElementById('cf-title').focus(), 80);
+}
+
+function closeCardModal() {
+  document.getElementById('card-modal').classList.remove('open');
+  editingCardId = null;
+}
+
+// Close on backdrop click
+document.addEventListener('DOMContentLoaded', () => {
+  document.getElementById('card-modal').addEventListener('click', e => {
+    if (e.target === e.currentTarget) closeCardModal();
+  });
+});
+
+// Close on Escape
+document.addEventListener('keydown', e => {
+  if (e.key === 'Escape') closeCardModal();
+});
+
+// ── SAVE CARD (create or update) ─────────────────────────────────────────────
+function saveCard() {
+  const title  = document.getElementById('cf-title').value.trim();
+  if (!title) { document.getElementById('cf-title').focus(); document.getElementById('cf-title').style.borderColor = 'var(--red)'; return; }
+  document.getElementById('cf-title').style.borderColor = '';
+
+  const body   = document.getElementById('cf-body').value.trim();
+  const effort = document.getElementById('cf-effort').value.trim() || '—';
+  const tagVal  = document.getElementById('cf-tag').value.split('|');
+  const roleVal = document.getElementById('cf-role').value.split('|');
+  const col    = document.getElementById('cf-col').value;
+
+  const tag      = tagVal[0];
+  const tagClass = tagVal[1];
+  const role     = roleVal[0];
+  const roleClass = roleVal[1];
+
+  if (editingCardId) {
+    // ── UPDATE EXISTING ──────────────────────────────────────────
+    const card = cardState.find(c => c.id === editingCardId);
+    if (!card) { closeCardModal(); return; }
+
+    card.title     = title;
+    card.body      = body;
+    card.effort    = effort;
+    card.tag       = tag;
+    card.tagClass  = tagClass;
+    card.role      = role;
+    card.roleClass = roleClass;
+
+    // If column changed, move the DOM element
+    const oldCol = card.col;
+    card.col = col;
+
+    const cardEl = document.querySelector(`[data-card-id="${editingCardId}"]`);
+    if (cardEl) {
+      // Rebuild inner HTML
+      cardEl.innerHTML = buildCardInner(card);
+      // Re-attach drag events
+      cardEl.removeEventListener('mousedown', onCardMouseDown);
+      cardEl.removeEventListener('touchstart', onCardTouchStart);
+      cardEl.addEventListener('mousedown', onCardMouseDown);
+      cardEl.addEventListener('touchstart', onCardTouchStart, { passive: false });
+      // Move to new column if changed
+      if (oldCol !== col) {
+        const zone = document.getElementById('col-body-' + col);
+        if (zone) zone.appendChild(cardEl);
+        if (col === 'done') { cardEl.classList.add('card-done'); }
+        else { cardEl.classList.remove('card-done'); }
+      }
+    }
+  } else {
+    // ── CREATE NEW ───────────────────────────────────────────────
+    customCardCounter++;
+    const newCard = {
+      id: 'custom-' + customCardCounter,
+      col, title, body, effort, tag, tagClass, role, roleClass,
+      isCustom: true
+    };
+    cardState.push(newCard);
+    const zone = document.getElementById('col-body-' + col);
+    if (zone) zone.appendChild(buildCardEl(newCard));
+  }
+
+  updateColCounts();
+  saveKanban();
+  closeCardModal();
+  showToast(editingCardId ? '✓ Card updated' : '✓ Card added to ' + col.charAt(0).toUpperCase() + col.slice(1), 2000);
+}
+
+// ── DELETE CARD ───────────────────────────────────────────────────────────────
+function deleteCard() {
+  if (!editingCardId) return;
+  if (!confirm('Delete this card? This cannot be undone.')) return;
+
+  // Remove from cardState
+  const idx = cardState.findIndex(c => c.id === editingCardId);
+  if (idx !== -1) cardState.splice(idx, 1);
+
+  // Remove from DOM
+  const cardEl = document.querySelector(`[data-card-id="${editingCardId}"]`);
+  if (cardEl) cardEl.remove();
+
+  updateColCounts();
+  saveKanban();
+  closeCardModal();
+  showToast('Card deleted', 1800);
+}
+
+// ── BUILD CARD INNER HTML (shared by buildCardEl and edit update) ─────────────
+function buildCardInner(card) {
+  return `
+    <button class="card-edit-btn" onmousedown="event.stopPropagation()" onclick="event.stopPropagation();openEditModal('${card.id}')" title="Edit card">✎</button>
+    <div class="drag-handle">⠿</div>
+    <span class="card-tag ${card.tagClass}">${card.tag}</span>
+    <div class="card-title">${card.title}</div>
+    <div class="card-body">${card.body || ''}</div>
+    <div class="card-footer">
+      <span class="card-role ${card.roleClass}">${card.role}</span>
+      <span class="card-effort">~${card.effort}</span>
+    </div>`;
+}
+
+// ── PALETTE LIBRARY LINK ─────────────────────────────────────────────────────
+function openPaletteLibrary() {
+  // Try to open palette_library.html relative to this file's location
+  const base = window.location.href.replace(/[^/]+$/, '');
+  window.open(base + 'palette_library.html', '_blank');
+}
+
+// ── CUSTOM CARDS: save/restore through export/import ─────────────────────────
+// We extend saveKanban to also persist custom card DATA (not just position)
+// and extend restoreKanban to rebuild custom cards from saved data.
+const _origSaveKanban = saveKanban;
+function saveKanban() {
+  // Walk DOM for positions
+  const state = [];
+  document.querySelectorAll('.col-body.drop-zone').forEach(zone => {
+    const col = zone.dataset.col;
+    zone.querySelectorAll('.card.draggable').forEach(card => {
+      const cid = card.dataset.cardId;
+      const cardData = cardState.find(c => c.id === cid);
+      const entry = { id: cid, col };
+      // For custom cards, embed the full data so it survives export/import
+      if (cardData && cardData.isCustom) {
+        entry.custom = {
+          title: cardData.title, body: cardData.body, effort: cardData.effort,
+          tag: cardData.tag, tagClass: cardData.tagClass,
+          role: cardData.role, roleClass: cardData.roleClass
+        };
+      }
+      state.push(entry);
+    });
+  });
+  try { localStorage.setItem(STORAGE_KAN, JSON.stringify(state)); } catch(e) {}
+  showSaved();
+}
+
+const _origRestoreKanban = restoreKanban;
+function restoreKanban() {
+  try {
+    const raw = localStorage.getItem(STORAGE_KAN);
+    if (!raw) return false;
+    const saved = JSON.parse(raw);
+    if (!saved.length) return false;
+
+    saved.forEach(({ id, col, custom }) => {
+      if (custom && !cardState.find(c => c.id === id)) {
+        // Rebuild custom card into cardState + DOM
+        customCardCounter++;
+        const newCard = { id, col, isCustom: true, ...custom };
+        cardState.push(newCard);
+        const zone = document.getElementById('col-body-' + col);
+        if (zone) zone.appendChild(buildCardEl(newCard));
+      } else {
+        // Standard card — just move to saved column
+        const card = cardState.find(c => c.id === id);
+        if (card) card.col = col;
+        const cardEl = document.querySelector(`[data-card-id="${id}"]`);
+        const zone   = document.getElementById('col-body-' + col);
+        if (cardEl && zone) zone.appendChild(cardEl);
+      }
+    });
+
+    updateColCounts();
+    document.querySelectorAll('#col-body-done .card').forEach(c => c.classList.add('card-done'));
+    // Archive cards: just leave as-is (CSS handles the greyed look)
+    return true;
+  } catch(e) { return false; }
+}
+
+// Also extend exportProgress to embed custom card data
+const _origExportProgress = exportProgress;
+function exportProgress() {
+  const checked = [];
+  document.querySelectorAll('.task-item.checked').forEach(el => {
+    checked.push(el.dataset.phase + ':' + el.dataset.task);
+  });
+
+  const kanban = [];
+  document.querySelectorAll('.col-body.drop-zone').forEach(zone => {
+    const col = zone.dataset.col;
+    zone.querySelectorAll('.card.draggable').forEach(card => {
+      const cid = card.dataset.cardId;
+      const cardData = cardState.find(c => c.id === cid);
+      const entry = { id: cid, col };
+      if (cardData && cardData.isCustom) {
+        entry.custom = {
+          title: cardData.title, body: cardData.body, effort: cardData.effort,
+          tag: cardData.tag, tagClass: cardData.tagClass,
+          role: cardData.role, roleClass: cardData.roleClass
+        };
+      }
+      kanban.push(entry);
+    });
+  });
+
+  const payload = { version: 2, exported: new Date().toISOString(), checklist: checked, kanban };
+  const blob = new Blob([JSON.stringify(payload, null, 2)], { type: 'application/json' });
+  const url  = URL.createObjectURL(blob);
+  const a    = document.createElement('a');
+  a.href = url;
+  a.download = 'wf-progress-' + new Date().toISOString().slice(0,10) + '.json';
+  document.body.appendChild(a); a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+  showToast('✓ Progress exported — keep this .json file safe!', 3000);
+}
+
+// ── INIT ─────────────────────────────────────────────────────────────────────
+
+renderChecklist();
+renderKanban();
+
+const hadCL  = restoreChecklist();
+updateProgress();
+const hadKAN = restoreKanban();
+setSaveIndicator(hadCL || hadKAN);
+
+</script>
+<!-- ── CARD EDITOR MODAL ──────────────────────────────────────────── -->
+<div class="modal-backdrop" id="card-modal">
+  <div class="modal" role="dialog" aria-modal="true">
+    <button class="modal-close" onclick="closeCardModal()" aria-label="Close">&times;</button>
+    <div class="modal-title" id="modal-title">New Card</div>
+
+    <div class="field-row">
+      <label>Title</label>
+      <input type="text" id="cf-title" placeholder="What needs doing?" maxlength="100">
+    </div>
+    <div class="field-row">
+      <label>Description</label>
+      <textarea id="cf-body" rows="3" placeholder="More detail, context, or acceptance criteria..."></textarea>
+    </div>
+    <div class="field-row-2col">
+      <div class="field-row" style="margin-bottom:0">
+        <label>Tag</label>
+        <select id="cf-tag">
+          <option value="Figma|tag-figma">Figma</option>
+          <option value="Webflow|tag-webflow">Webflow</option>
+          <option value="Relume|tag-relume">Relume</option>
+          <option value="System|tag-system">System</option>
+          <option value="Content|tag-content">Content</option>
+        </select>
+      </div>
+      <div class="field-row" style="margin-bottom:0">
+        <label>Column</label>
+        <select id="cf-col">
+          <option value="backlog">Backlog</option>
+          <option value="todo">To Do</option>
+          <option value="inprog">In Progress</option>
+          <option value="review">In Review</option>
+          <option value="done">Done</option>
+          <option value="archive">🗄 Archive</option>
+        </select>
+      </div>
+    </div>
+    <div class="field-row-2col" style="margin-top:14px">
+      <div class="field-row" style="margin-bottom:0">
+        <label>Role</label>
+        <select id="cf-role">
+          <option value="Designer|role-designer">Designer</option>
+          <option value="Developer|role-developer">Developer</option>
+          <option value="Both|role-both">Both</option>
+          <option value="Sales|role-sales">Sales</option>
+        </select>
+      </div>
+      <div class="field-row" style="margin-bottom:0">
+        <label>Effort</label>
+        <input type="text" id="cf-effort" placeholder="e.g. 2hrs" maxlength="20">
+      </div>
+    </div>
+
+    <div class="modal-actions">
+      <button class="btn-danger" id="modal-delete-btn" onclick="deleteCard()" style="display:none">🗑 Delete</button>
+      <button class="btn-ghost" onclick="closeCardModal()">Cancel</button>
+      <button class="btn-primary" onclick="saveCard()">Save Card</button>
+    </div>
+  </div>
+</div>
+
+</body>
+</html>
