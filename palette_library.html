@@ -32,6 +32,22 @@ body { font-family: var(--font-body); background: var(--ui-bg); color: var(--ui-
 .mode-toggle:hover { color: var(--ui-text); border-color: rgba(255,255,255,0.18); }
 .mode-toggle.active { color: var(--ui-accent); border-color: var(--ui-accent); background: rgba(87,192,179,0.08); }
 .count-badge { background: var(--ui-accent); color: #0F1117; font-family: var(--font-mono); font-size: 10px; font-weight: 500; padding: 2px 8px; border-radius: 4px; }
+.back-link {
+  font-size: 11px;
+  font-weight: 600;
+  color: #14B8C8;
+  text-decoration: none;
+  margin-right: 14px;
+  display: inline-flex;
+  align-items: center;
+  opacity: 0.85;
+  transition: all 0.2s ease;
+}
+
+.back-link:hover {
+  opacity: 1;
+  text-decoration: underline;
+}
 
 /* LAYOUT */
 .layout { display: flex; min-height: calc(100vh - 58px); }
@@ -185,6 +201,7 @@ body { font-family: var(--font-body); background: var(--ui-bg); color: var(--ui-
 
 <div class="topbar">
   <div class="brand">
+    <a href="index.html" class="back-link">← Back</a>
     <div class="brand-dot"></div>
     <div>
       <div class="brand-name">Palette Library</div>
